@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Tester 444 random vs GW",
+            "request": "launch",
+            "mainClass": "mnkgame.MNKPlayerTester",
+            "projectName": "GW_e4941194",
+            "args": "4 4 4 mnkgame.RandomPlayer mnkgame.GW -r 100"
+        },
+        {
+            "type": "java",
+            "name": "tester 333 random vs GW",
+            "request": "launch",
+            "mainClass": "mnkgame.MNKPlayerTester",
+            "projectName": "GW_e4941194",
+            "args": "3 3 3 mnkgame.RandomPlayer mnkgame.GW -r 100"
+        },
+        {
+            "type": "java",
+            "name": "tester 555 GW vs GW",
+            "request": "launch",
+            "mainClass": "mnkgame.MNKPlayerTester",
+            "projectName": "GW_e4941194",
+            "args": "5 5 5 mnkgame.GW mnkgame.GW -r 100"
+        }
+    ]
+}

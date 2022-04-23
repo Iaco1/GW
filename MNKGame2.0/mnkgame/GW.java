@@ -1,12 +1,11 @@
 package mnkgame;
 
-import mnkgame.*;
 import java.util.LinkedList;
 
 /**
  * Draft implementation of an mnk-player
  */
-public class Player implements MNKPlayer {
+public class GW implements MNKPlayer {
     private MNKBoard board;
     private int timeout;
     private int player;
@@ -62,41 +61,6 @@ public class Player implements MNKPlayer {
         }
     }
 
-    /**
-     * Alpha-Beta pruning implementation
-     * @param b The board to search
-     * @param myTurn Whose turn it currently is
-     * @param depth The depth up to which to search the tree
-     * @param alpha The likeliness the player will win
-     * @param beta The likeliness the adversary will win
-     * @return How conducive to victory the current move will be
-     */
-    public double alphaBeta(MNKBoard b, boolean myTurn, int depth, double alpha, double beta){
-        double eval;
-        if(depth == 0 || b.getFreeCells().length == 0) return evaluate(b);
-        else if(myTurn){
-            eval = Double.MAX_VALUE;
-            for(MNKCell freeCell : b.getFreeCells()){
-                MNKBoard childBoard = b;
-                childBoard.markCell(freeCell.i, freeCell.j);
-                eval = Double.min(eval, alphaBeta(childBoard, false, depth-1, alpha, beta));
-                beta = Double.min(eval, beta);
-                if(beta <= alpha) break;
-            }
-            return eval;
-        }else{
-            eval = Double.MIN_VALUE;
-            for(MNKCell freeCell : b.getFreeCells()){
-                MNKBoard childBoard = b;
-                childBoard.markCell(freeCell.i, freeCell.j);
-                eval = Double.max(eval, alphaBeta(childBoard, true, depth-1, alpha, beta));
-                alpha = Double.max(eval, alpha);
-                if(beta <= alpha) break;
-            }
-            return eval;
-        }
-    }
-
     public void initPlayer(int M, int N, int K, boolean first, int timeout_in_secs) {
         board = new MNKBoard(M, N, K);
         timeout = timeout_in_secs;
@@ -105,18 +69,7 @@ public class Player implements MNKPlayer {
     }
 
     public MNKCell selectCell(MNKCell[] FC, MNKCell[] MC) {
-        double optimalCellEval = 0.0;
-        MNKCell optimalCell = FC[0];
-
-        for(MNKCell freeCell : FC) {
-            MNKBoard childBoard = board;
-            double eval = alphaBeta(childBoard, childBoard.currentPlayer() == player, Integer.MAX_VALUE, Double.MIN_VALUE, Double.MAX_VALUE);
-            if(eval > optimalCellEval){
-                optimalCell = freeCell;
-                optimalCellEval = eval;
-            }
-        }
-        return optimalCell;
+        return FC[0];
     }
 
     public String playerName() {
