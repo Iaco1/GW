@@ -10,7 +10,7 @@ public class GW implements MNKPlayer {
     private int timeout;
     private int player;
 
-    /**
+/**
      * Finds the position, in the MC array, of all <code>MNKCell</code>s that are adjacent to cell c and of the same cell state
      * @param c The cell about which to search for adjacent elements with the same cell state
      * @param MC the array of all marked cells
@@ -49,16 +49,49 @@ public class GW implements MNKPlayer {
 
 
     /**
-     * placeholder, returns 0.5 if it's my turn and 0.25 if it's the other player's turn
+     * placeholder
      */
-    public double evaluate(MNKBoard b){
-        switch (b.gameState()){
-            case WINP1 -> { return 1; }
-            case WINP2 -> { return 0; }
-            case DRAW -> { return 0.5; }
-            case OPEN -> { return 0.1; }
-            default -> { return -0.1; }
+    public Double evaluate(MNKBoard board){
+        switch(board.gameState()){
+            case WINP1:{
+                return (player == 0) ? 1.0 : -1.0;
+            }
+            case WINP2:{
+                return (player == 1) ? 1.0 : -1.0;
+            }
+            case DRAW:
+            case OPEN:
+            default:{
+                return 0.5;
+            }
         }
+    }
+
+    /**
+     * an implementation of minmax for mnk games
+     * @param b The board on which to perform minmax
+     * @param max The player that is now moving, max => our player
+     * @return the 
+     */
+    public Double minmax(MNKBoard b, boolean max){
+        Double eval;
+        if(b.getFreeCells().length == 0 || b.gameState() != MNKGameState.OPEN) return evaluate(b);
+        else if(max){
+            eval = Double.MIN_VALUE;
+            for(MNKCell freecell : b.getFreeCells()){
+                b.markCell(freecell.i, freecell.j);
+                eval = Double.max(eval, minmax(b, false));
+                b.unmarkCell();
+            }
+        }else{
+            eval = Double.MAX_VALUE;
+            for(MNKCell freecell : b.getFreeCells()){
+                b.markCell(freecell.i, freecell.j);
+                eval = Double.min(eval, minmax(b, true));
+                b.unmarkCell();
+            }
+        }
+        return eval;
     }
 
     public void initPlayer(int M, int N, int K, boolean first, int timeout_in_secs) {
@@ -69,14 +102,28 @@ public class GW implements MNKPlayer {
     }
 
     public MNKCell selectCell(MNKCell[] FC, MNKCell[] MC) {
-        return FC[0];
+        Double optimalValue = Double.MIN_VALUE;
+        MNKCell optimalCell = FC[0];
+
+        if(MC.length > 0) board.markCell(MC[MC.length-1].i, MC[MC.length-1].j); //mark last played cell by the adversary
+
+        for(MNKCell freeCell : FC){
+            board.markCell(freeCell.i, freeCell.j);
+            Double currentCellValue = minmax(board, (board.currentPlayer() == player) ? true : false );
+            
+            if(currentCellValue > optimalValue){
+                optimalValue = currentCellValue;
+                optimalCell = freeCell;
+            }
+            board.unmarkCell();
+        }
+        
+        board.markCell(optimalCell.i, optimalCell.j);
+
+        return optimalCell;
     }
 
     public String playerName() {
         return "GW";
-    }
-
-    public static void main(String[] args) {
-
     }
 }
