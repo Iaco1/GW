@@ -7,7 +7,7 @@
             "request": "launch",
             "mainClass": "mnkgame.MNKPlayerTester",
             "projectName": "GW_e4941194",
-            "args": "3 3 3 mnkgame.GW mnkgame.GW -r 10 -t 600"
+            "args": "3 3 3 mnkgame.QuasiRandomPlayer mnkgame.GW -r 100 -t 10"
         },
         {
             "type": "java",
