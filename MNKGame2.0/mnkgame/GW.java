@@ -6,9 +6,19 @@ import java.util.LinkedList;
  * Draft implementation of an mnk-player
  */
 public class GW implements MNKPlayer {
-    private MNKBoard board;
-    private int timeout;
-    private int player;
+    protected MNKBoard board;
+    protected int timeout;
+    protected int player;
+    final Double MIN = -1000000000.0;
+
+    public static String toSymbol(MNKCellState cs){
+        switch(cs){
+            case P1:{ return "X"; }
+            case P2:{ return "O"; }
+            case FREE: { return " "; }
+            default: return "";
+        }
+    }
 
 /**
      * Finds the position, in the MC array, of all <code>MNKCell</code>s that are adjacent to cell c and of the same cell state
@@ -62,7 +72,7 @@ public class GW implements MNKPlayer {
             case DRAW:
             case OPEN:
             default:{
-                return 0.5;
+                return 0.0;
             }
         }
     }
@@ -77,7 +87,7 @@ public class GW implements MNKPlayer {
         Double eval;
         if(b.gameState() != MNKGameState.OPEN) return evaluate(b);
         else if(max){
-            eval = Double.MIN_VALUE;
+            eval = MIN;
             for(MNKCell freecell : b.getFreeCells()){
                 b.markCell(freecell.i, freecell.j);
                 eval = Double.max(eval, minmax(b, false));
@@ -102,19 +112,19 @@ public class GW implements MNKPlayer {
      * @param max Whether it is the player's turn or not
      * @param alpha The minimum attainable score for the player
      * @param beta The maximum attainable score for the adversary
-     * @return
+     * @return The value of the current move
      */
     public Double alphaBeta(MNKBoard b, boolean max, double alpha, double beta){
         Double eval;
         if(b.gameState != MNKGameState.OPEN) return evaluate(b);
         else if(max){
-            eval = Double.MIN_VALUE;
+            eval = MIN;
             for(MNKCell freeCell : b.getFreeCells()){
                 b.markCell(freeCell.i, freeCell.j);
                 eval = Double.max(eval, alphaBeta(b, false, alpha, beta));
                 b.unmarkCell();
                 alpha = Double.max(eval, alpha);
-                if(beta >= alpha) break;
+                if(alpha >= beta) break;
             }
         }else{
             eval = Double.MAX_VALUE;
@@ -123,7 +133,7 @@ public class GW implements MNKPlayer {
                 eval = Double.min(eval, alphaBeta(b, true, alpha, beta));
                 b.unmarkCell();
                 beta = Double.min(eval, beta);
-                if(beta >= alpha) break;
+                if(alpha >= beta) break;
             }
         }
         return eval;
@@ -137,21 +147,36 @@ public class GW implements MNKPlayer {
     }
 
     public MNKCell selectCell(MNKCell[] FC, MNKCell[] MC) {
-        Double optimalValue = Double.MIN_VALUE;
+        Double optimalValue = MIN;
         MNKCell optimalCell = FC[0];
+
+        String[][] valueMap = new String[board.M][board.N];
+        for(MNKCell markedCell : MC){
+            valueMap[markedCell.i][markedCell.j] = toSymbol(markedCell.state);
+        }
 
         if(MC.length > 0) board.markCell(MC[MC.length-1].i, MC[MC.length-1].j); //mark last played cell by the adversary
 
         for(MNKCell freeCell : FC){
             board.markCell(freeCell.i, freeCell.j);
-            Double currentCellValue = alphaBeta(board, (board.currentPlayer() == player) ? true : false, 0.0, 0.0);
-            
+            Double currentCellValue = minmax(board, (board.currentPlayer() == player) ? true : false);
+
             if(currentCellValue > optimalValue){
                 optimalValue = currentCellValue;
                 optimalCell = freeCell;
             }
             board.unmarkCell();
+            valueMap[freeCell.i][freeCell.j] = currentCellValue.toString();
         }
+
+        System.out.println();
+        for(String[] row : valueMap){
+            for(String element : row){
+                System.out.print(element+"      ");
+            }
+            System.out.println();
+        }
+        System.out.println();
         
         board.markCell(optimalCell.i, optimalCell.j);
 

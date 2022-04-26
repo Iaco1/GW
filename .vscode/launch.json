@@ -3,19 +3,11 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Tester 333 random vs GW",
+            "name": "Tester 333 GW vs GW",
             "request": "launch",
             "mainClass": "mnkgame.MNKPlayerTester",
             "projectName": "GW_e4941194",
-            "args": "3 3 3 mnkgame.RandomPlayer mnkgame.GW -r 100 -t 600"
-        },
-        {
-            "type": "java",
-            "name": "tester 333 random vs GW",
-            "request": "launch",
-            "mainClass": "mnkgame.MNKPlayerTester",
-            "projectName": "GW_e4941194",
-            "args": "3 3 3 mnkgame.RandomPlayer mnkgame.GW -r 100"
+            "args": "3 3 3 mnkgame.GW mnkgame.GW -r 10 -t 600"
         },
         {
             "type": "java",
