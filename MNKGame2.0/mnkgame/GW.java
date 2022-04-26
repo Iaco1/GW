@@ -11,6 +11,15 @@ public class GW implements MNKPlayer {
     protected int player;
     final Double MIN = -1000000000.0;
 
+    public static String toSymbol(MNKCellState cs){
+        switch(cs){
+            case P1:{ return "X"; }
+            case P2:{ return "O"; }
+            case FREE: { return " "; }
+            default: return "";
+        }
+    }
+
 /**
      * Finds the position, in the MC array, of all <code>MNKCell</code>s that are adjacent to cell c and of the same cell state
      * @param c The cell about which to search for adjacent elements with the same cell state
@@ -143,15 +152,15 @@ public class GW implements MNKPlayer {
         MNKCell optimalCell = FC[0];
 
         //debugging helper map
-        ValueMap valueMap = new ValueMap(board.M, board.N);
+        String[][] valueMap = new String[board.M][board.N];
         for(MNKCell markedCell : MC){
-            valueMap.addMark(markedCell);
+            valueMap[markedCell.i][markedCell.j] = toSymbol(markedCell.state);
         }
 
         //mark last played cell by the adversary
         if(MC.length > 0) board.markCell(MC[MC.length-1].i, MC[MC.length-1].j);
 
-        Double alpha = 0.0, beta = 0.0;
+        Double alpha = -1.0, beta = 1.0;
         //compute the value of each available move
         for(MNKCell freeCell : FC){
             board.markCell(freeCell.i, freeCell.j);
@@ -162,12 +171,19 @@ public class GW implements MNKPlayer {
                 optimalCell = freeCell;
             }
             board.unmarkCell();
-
-            valueMap.addValue(freeCell, currentCellValue);
+            valueMap[freeCell.i][freeCell.j] = currentCellValue.toString();
         }
 
-        valueMap.printMap();
-        
+        //prints out the board of marked cells and estimates of winning (for debugging)
+        /*System.out.println("________GW________");
+        for(String[] row : valueMap){
+            for(String element : row){
+                System.out.print(element+"      ");
+            }
+            System.out.println();
+        }
+        System.out.println("________GW________");
+*/
         board.markCell(optimalCell.i, optimalCell.j);
 
         return optimalCell;

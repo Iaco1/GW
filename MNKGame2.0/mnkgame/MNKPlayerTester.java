@@ -332,8 +332,8 @@ public class MNKPlayerTester {
 			}
 		}
 		if(VERBOSE) System.out.println("\n**** FINAL SCORE ****");
-		System.out.println(Player[0].playerName() + " Score: " + P1SCORE + " \n\t\tWon: " + STATP1[0] + " Lost: " + STATP2[0] + " Draw: " + STATP1[1] + " Error: " + STATP1[2]);
-		System.out.println(Player[1].playerName() + " Score: " + P2SCORE + " \n\t\tWon: " + STATP2[0] + " Lost: " + STATP1[0] + " Draw: " + STATP2[1] + " Error: " + STATP2[2]);	
+		System.out.println(Player[0].playerName() + " Score: " + P1SCORE + " \n\t\tWon: " + STATP1[0] + " Lost: " + STATP2[0] + " Draw: " + STATP1[1] + " \n\t\tError: " + STATP1[2]);
+		System.out.println(Player[1].playerName() + " Score: " + P2SCORE + " \n\t\tWon: " + STATP2[0] + " Lost: " + STATP1[0] + " Draw: " + STATP2[1] + " \n\t\tError: " + STATP2[2]);	
 		System.exit(0);
 	}
 }
