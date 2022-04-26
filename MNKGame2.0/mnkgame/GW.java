@@ -11,15 +11,6 @@ public class GW implements MNKPlayer {
     protected int player;
     final Double MIN = -1000000000.0;
 
-    public static String toSymbol(MNKCellState cs){
-        switch(cs){
-            case P1:{ return "X"; }
-            case P2:{ return "O"; }
-            case FREE: { return " "; }
-            default: return "";
-        }
-    }
-
 /**
      * Finds the position, in the MC array, of all <code>MNKCell</code>s that are adjacent to cell c and of the same cell state
      * @param c The cell about which to search for adjacent elements with the same cell state
@@ -147,36 +138,35 @@ public class GW implements MNKPlayer {
     }
 
     public MNKCell selectCell(MNKCell[] FC, MNKCell[] MC) {
+        //optimal cell intitalization
         Double optimalValue = MIN;
         MNKCell optimalCell = FC[0];
 
-        String[][] valueMap = new String[board.M][board.N];
+        //debugging helper map
+        ValueMap valueMap = new ValueMap(board.M, board.N);
         for(MNKCell markedCell : MC){
-            valueMap[markedCell.i][markedCell.j] = toSymbol(markedCell.state);
+            valueMap.addMark(markedCell);
         }
 
-        if(MC.length > 0) board.markCell(MC[MC.length-1].i, MC[MC.length-1].j); //mark last played cell by the adversary
+        //mark last played cell by the adversary
+        if(MC.length > 0) board.markCell(MC[MC.length-1].i, MC[MC.length-1].j);
 
+        Double alpha = 0.0, beta = 0.0;
+        //compute the value of each available move
         for(MNKCell freeCell : FC){
             board.markCell(freeCell.i, freeCell.j);
-            Double currentCellValue = minmax(board, (board.currentPlayer() == player) ? true : false);
+            Double currentCellValue = alphaBeta(board, (board.currentPlayer() == player) ? true : false, alpha, beta);
 
             if(currentCellValue > optimalValue){
                 optimalValue = currentCellValue;
                 optimalCell = freeCell;
             }
             board.unmarkCell();
-            valueMap[freeCell.i][freeCell.j] = currentCellValue.toString();
+
+            valueMap.addValue(freeCell, currentCellValue);
         }
 
-        System.out.println();
-        for(String[] row : valueMap){
-            for(String element : row){
-                System.out.print(element+"      ");
-            }
-            System.out.println();
-        }
-        System.out.println();
+        valueMap.printMap();
         
         board.markCell(optimalCell.i, optimalCell.j);
 
