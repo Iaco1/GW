@@ -71,11 +71,11 @@ public class GW implements MNKPlayer {
      * an implementation of minmax for mnk games
      * @param b The board on which to perform minmax
      * @param max The player that is now moving, max => our player
-     * @return the 
+     * @return the value of the current move
      */
     public Double minmax(MNKBoard b, boolean max){
         Double eval;
-        if(b.getFreeCells().length == 0 || b.gameState() != MNKGameState.OPEN) return evaluate(b);
+        if(b.gameState() != MNKGameState.OPEN) return evaluate(b);
         else if(max){
             eval = Double.MIN_VALUE;
             for(MNKCell freecell : b.getFreeCells()){
@@ -89,6 +89,41 @@ public class GW implements MNKPlayer {
                 b.markCell(freecell.i, freecell.j);
                 eval = Double.min(eval, minmax(b, true));
                 b.unmarkCell();
+            }
+        }
+        return eval;
+    }
+
+
+    /**
+     * An implementation of the alpha-beta pruning algorithm for an mnk-game.
+     * It calculates the likeliness of winning based on the state of the board.
+     * @param b The Board to analyze
+     * @param max Whether it is the player's turn or not
+     * @param alpha The minimum attainable score for the player
+     * @param beta The maximum attainable score for the adversary
+     * @return
+     */
+    public Double alphaBeta(MNKBoard b, boolean max, double alpha, double beta){
+        Double eval;
+        if(b.gameState != MNKGameState.OPEN) return evaluate(b);
+        else if(max){
+            eval = Double.MIN_VALUE;
+            for(MNKCell freeCell : b.getFreeCells()){
+                b.markCell(freeCell.i, freeCell.j);
+                eval = Double.max(eval, alphaBeta(b, false, alpha, beta));
+                b.unmarkCell();
+                alpha = Double.max(eval, alpha);
+                if(beta >= alpha) break;
+            }
+        }else{
+            eval = Double.MAX_VALUE;
+            for(MNKCell freeCell : b.getFreeCells()){
+                b.markCell(freeCell.i, freeCell.j);
+                eval = Double.min(eval, alphaBeta(b, true, alpha, beta));
+                b.unmarkCell();
+                beta = Double.min(eval, beta);
+                if(beta >= alpha) break;
             }
         }
         return eval;
@@ -109,7 +144,7 @@ public class GW implements MNKPlayer {
 
         for(MNKCell freeCell : FC){
             board.markCell(freeCell.i, freeCell.j);
-            Double currentCellValue = minmax(board, (board.currentPlayer() == player) ? true : false );
+            Double currentCellValue = alphaBeta(board, (board.currentPlayer() == player) ? true : false, 0.0, 0.0);
             
             if(currentCellValue > optimalValue){
                 optimalValue = currentCellValue;
