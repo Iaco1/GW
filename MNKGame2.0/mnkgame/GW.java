@@ -1,6 +1,8 @@
 package mnkgame;
 
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 
 /**
  * Draft implementation of an mnk-player
@@ -20,48 +22,12 @@ public class GW implements MNKPlayer {
         }
     }
 
-/**
-     * Finds the position, in the MC array, of all <code>MNKCell</code>s that are adjacent to cell c and of the same cell state
-     * @param c The cell about which to search for adjacent elements with the same cell state
-     * @param MC the array of all marked cells
-     * @return the LinkedList list of all cells that are adjacent to c and of the same MNKCellState
-     */
-    public static LinkedList<MNKCell> findEqualAdjacent(MNKCell c, MNKCell [] MC){
-        LinkedList<MNKCell> eqAdj = new LinkedList<>();
-        if(c == null || MC == null) return eqAdj;
-
-        for(MNKCell mc : MC){
-            int horizontalDistance = Math.abs(mc.i - c.i), verticalDistance = Math.abs(mc.j - c.j);
-            if(( verticalDistance == 1 || horizontalDistance == 1) && mc.state == c.state)  eqAdj.add(mc);   //mc is adjacent to c
-        }
-        return eqAdj;
-    }
-
-    /**
-     * Returns the cell, that could be contained in the Marked Cells array, that would contribute to an alignment.
-     * The method can return cells that lie outside the boundaries of the board.
-     * @param c The first cell
-     * @param a The second cell
-     * @return The cell that would have to be contained in Marked Cells to contribute to an alignment
-     * @throws Exception if the two cells are in the same position, are of a different <code>MNKCellState</code> or are not adjacent
-     */
-    public static MNKCell expectedNext(MNKCell c, MNKCell a) throws Exception {
-        if(c.state != a.state) throw new Exception("The two cells are of a different MNKCellState");
-        int rowDistance = Math.abs(c.i - a.i), columnDistance = Math.abs(c.j - a.j);
-
-        if(rowDistance == 0 && columnDistance == 0) throw new Exception("The two cells are in the same position");
-        if(columnDistance == 0) return new MNKCell(c.i + 1, c.j);  // cells on the same column
-        if(rowDistance == 0) return new MNKCell(c.i, c.j + 1);  // cells on the same row
-        if(rowDistance == 1 && columnDistance == 1) return new MNKCell(c.i + 1, c.j + 1);
-
-        throw new Exception("The two cells are not adjacent");
-    }
 
 
     /**
      * placeholder
      */
-    public Double evaluate(MNKBoard board){
+    public Double evaluateEndGame(MNKBoard board){
         switch(board.gameState()){
             case WINP1:{
                 return (player == 0) ? 1.0 : -1.0;
@@ -76,6 +42,28 @@ public class GW implements MNKPlayer {
             }
         }
     }
+    
+    
+
+    /**
+     * k == 3 version
+     * @param b
+     * @return the number of winning alinements the current player has at its disposal
+     */
+    /*public int winningAlinements(MNKBoard b){
+        int alignements = 0;
+        HashSet<MNKCell> alignement = new HashSet<>();
+        for(MNKCell cell : b.getMarkedCells()){
+            //get all possible alignements from this cell into a set
+            //discard all alignements that can't lead to a victory in the next move
+            //discard alignements that are already \in alignement
+            //alignement = alignemnet union this iteration set
+        }
+        //return size of winning alinements for the current player
+    }*/
+
+    //public Double evaluateMidGame(){}
+        // if winningAlinements() > 1 return evaluation based on who's the current player and who's the adversary
 
     /**
      * an implementation of minmax for mnk games
@@ -85,7 +73,7 @@ public class GW implements MNKPlayer {
      */
     public Double minmax(MNKBoard b, boolean max){
         Double eval;
-        if(b.gameState() != MNKGameState.OPEN) return evaluate(b);
+        if(b.gameState() != MNKGameState.OPEN) return evaluateEndGame(b);
         else if(max){
             eval = MIN;
             for(MNKCell freecell : b.getFreeCells()){
@@ -116,7 +104,7 @@ public class GW implements MNKPlayer {
      */
     public Double alphaBeta(MNKBoard b, boolean max, double alpha, double beta){
         Double eval;
-        if(b.gameState != MNKGameState.OPEN) return evaluate(b);
+        if(b.gameState != MNKGameState.OPEN) return evaluateEndGame(b);
         else if(max){
             eval = MIN;
             for(MNKCell freeCell : b.getFreeCells()){
