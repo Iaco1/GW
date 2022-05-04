@@ -30,3 +30,7 @@ MNKPlayerTester application:
 
 
 	java -cp ".." mnkgame.MNKPlayerTester 5 5 4 mnkgame.RandomPlayer mnkgame.QuasiRandomPlayer -v -t 1 -r 10
+
+
+
+	comment
