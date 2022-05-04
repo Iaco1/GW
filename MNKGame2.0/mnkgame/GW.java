@@ -134,6 +134,24 @@ public class GW implements MNKPlayer {
         player = (first) ? 0 : 1;
     }
 
+    public Double heuristic(MNKBoard b){
+        HashSet<HashSet<MNKCell>> allPossibleAligments = new HashSet<>();
+        allPossibleAligments = getAllWinningAliments();
+        for(HashSet<MNKCell> alignment : allPossibleAligments){
+            if(!isInBoard(alignment)) allPossibleAligments.remove(alignment);
+            if(containsMark(/*enum for opponent*/)) allPossibleAligments.remove(alignement);
+
+        }
+        Double optimalCellValue = -1000.0;
+        for(HashSet<MNKCell> alignment : allPossibleAligments){
+            for(MNKCell cell : alignment){
+                Double currentCellValue = computeValue(cell);
+                if(currentCellValue > optimalCellValue) optimalCellValue = currentCellValue;
+            }
+        }
+        return optimalCellValue;
+    }
+
     public MNKCell selectCell(MNKCell[] FC, MNKCell[] MC) {
         //optimal cell intitalization
         Double optimalValue = MIN;
