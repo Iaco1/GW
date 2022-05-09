@@ -190,7 +190,24 @@ public class GW implements MNKPlayer {
         return true;
     }
 
-    //public boolean containsMark(int player){}
+    /**
+     * checks if a given alignment contains marks of the other player
+     * @param player current player
+     * @param alignment 
+     * @return true, if the alignment contains mark of the other player
+     */
+    public boolean containsMark(int player, HashSet<MNKCell> alignment){
+        boolean containsMarkOfOtherPlayer = true;
+
+        for (MNKCell cell : alignment) {
+            if (MNKCellStateToInt(cell.state) != player) {
+                containsMarkOfOtherPlayer = true;
+                break;
+            }
+        }
+
+        return containsMarkOfOtherPlayer;
+    }
 
     /**
      * This is an Evaluation function.
