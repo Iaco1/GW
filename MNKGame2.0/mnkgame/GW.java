@@ -1,8 +1,6 @@
 package mnkgame;
 
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Set;
 
 /**
  * Draft implementation of an mnk-player
@@ -21,7 +19,7 @@ public class GW implements MNKPlayer {
             default: return "";
         }
     }
-
+/*
     public MNKCellState intToMNKCellState(int player){
         switch(player){
             case 0: return MNKCellState.P1;
@@ -31,11 +29,12 @@ public class GW implements MNKPlayer {
     }
     public int MNKCellStateToInt(MNKCellState state){
         switch{
-            case MNKCellState.P1: return 0;
-            case MNKCellState.P2: return 1;
-            default: return 2;
+            case MNKCellState.P1:{ return 0;}
+            case MNKCellState.P2: {return 1;}
+            default: {return 2;}
         }
     }
+    */
     /**
      * placeholder
      */
@@ -191,13 +190,13 @@ public class GW implements MNKPlayer {
     /**
      * Discards alignments that are out of bounds and alignments that don't produce a win for the considered player
      * @param allPossibleAligments
-     */
+     *//*
     public void filter(HashSet<HashSet<MNKCell>> allPossibleAligments){
         for(HashSet<MNKCell> alignment : allPossibleAligments){
             if(!isInBoard(alignment)) allPossibleAligments.remove(alignment);
             if(containsMark( enumfor opponent)) allPossibleAligments.remove(alignment);
         }
-    }
+    }*/
     
     /**
      * Returns true if the all cells are in the bounds of the board
@@ -213,9 +212,7 @@ public class GW implements MNKPlayer {
         return true;
     }
 
-    public boolean containsMark(int player){
-        
-    }
+    //public boolean containsMark(int player){}
 
     /**
      * This is an Evaluation function.
@@ -223,7 +220,7 @@ public class GW implements MNKPlayer {
      * It does so by computing the likeliness that selecting a free cell will result in a win and returning the value of the best move the player has.
      * @param b The board, with an MNKGameState.OPEN, that we want to evaluate. 
      * @return The likeliness that the current player will win
-     */
+     *//*
     public Double heuristic(MNKBoard b){
         //get all possible aligments for both players
         HashSet<HashSet<MNKCell>> allPossibleAligmentsGW = new HashSet<>();
@@ -244,8 +241,46 @@ public class GW implements MNKPlayer {
             }
         }
         return optimalCellValue;
+    }*/
+
+
+
+
+
+    /**
+     * creates a set of all possible winning alignments without consideration of other marked cells
+     * @param board 
+     * @return set of all possible winning alignments
+     */
+    public HashSet<HashSet<MNKCell>> getAllWinningAliments(MNKBoard board) {
+        HashSet<HashSet<MNKCell>> allAligments = new HashSet<>();
+        for (MNKCell markedCell : board.getMarkedCells()) {
+            // consider only the alignments of the current player
+            if ((markedCell.state.equals(MNKCellState.P1) && board.currentPlayer() == 0) || (markedCell.state.equals(MNKCellState.P2) && board.currentPlayer() == 1)) {
+            // find all possible alignments that contain markedCell
+                for (int x = 0; x < board.K; x++) {
+                    HashSet<MNKCell> horizontalAlignment = new HashSet<>();
+                    HashSet<MNKCell> verticalAlignemnt = new HashSet<>();
+                    HashSet<MNKCell> diagonalAlignment1 = new HashSet<>();
+                    HashSet<MNKCell> diagonalAlignment2 = new HashSet<>();
+                    for (int a = x-board.K+1; a <= x+board.K-1; a++) {
+                        horizontalAlignment.add(new MNKCell(markedCell.i, markedCell.j+a));
+                        verticalAlignemnt.add(new MNKCell(markedCell.i+a, markedCell.j));
+                        diagonalAlignment1.add(new MNKCell(markedCell.i+a, markedCell.j+a));
+                        diagonalAlignment2.add(new MNKCell(markedCell.i+a, markedCell.j-a));
+                    }
+                    allAligments.add(horizontalAlignment);
+                    allAligments.add(verticalAlignemnt);
+                    allAligments.add(diagonalAlignment1);
+                    allAligments.add(diagonalAlignment2);
+                }
+            }
+        }
+
+        return allAligments;
     }
     //considering opponents best moves was not added yet
+
 
 
     public MNKCell selectCell(MNKCell[] FC, MNKCell[] MC) {

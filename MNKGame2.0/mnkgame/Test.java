@@ -1,9 +1,9 @@
 package mnkgame;
-
+import org.junit.Assert;
 import java.util.HashSet;
 
 public class Test {
-    public static void main(String[] args) {
+    public static void computeValueTest() {
         MNKBoard b = new MNKBoard(3, 3, 3);
         b.markCell(0, 0);
         b.markCell(1, 1);
@@ -45,4 +45,29 @@ public class Test {
         System.out.println("just don't stop yet");
 
     }
+    public static void main(String[] args) {
+        getAllWinningAlimentsTest();
+    }
+
+    //@Test
+    public static void getAllWinningAlimentsTest() {
+
+        MNKBoard b = new MNKBoard(3,3,3);
+        GW player = new GW();
+        b.markCell(1,1);
+        b.markCell(1,2);
+        
+        //HashSet<HashSet<MNKCell>> alignments = new HashSet<>();
+
+
+        //alignments.add(new HashSet<>()); 
+
+
+
+        Assert.assertEquals(player.getAllWinningAliments(b).size(), 12);
+
+
+    }
+
+    
 }
