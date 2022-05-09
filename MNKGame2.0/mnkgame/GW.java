@@ -172,7 +172,7 @@ public class GW implements MNKPlayer {
     public void filter(HashSet<HashSet<MNKCell>> allPossibleAligments){
         for(HashSet<MNKCell> alignment : allPossibleAligments){
             if(!isInBoard(alignment)) allPossibleAligments.remove(alignment);
-            if(containsMark(alignment) allPossibleAligments.remove(alignment);
+            if(containsMark(alignment)) allPossibleAligments.remove(alignment);
         }
     }
     
