@@ -1,8 +1,6 @@
 package mnkgame;
 
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Set;
 
 /**
  * Draft implementation of an mnk-player
@@ -136,7 +134,7 @@ public class GW implements MNKPlayer {
 
     public Double heuristic(MNKBoard b){
         HashSet<HashSet<MNKCell>> allPossibleAligments = new HashSet<>();
-        allPossibleAligments = getAllWinningAliments();
+        allPossibleAligments = getAllWinningAliments(b);
         for(HashSet<MNKCell> alignment : allPossibleAligments){
             if(!isInBoard(alignment)) allPossibleAligments.remove(alignment);
             if(containsMark(/*enum for opponent*/)) allPossibleAligments.remove(alignement);
@@ -151,6 +149,34 @@ public class GW implements MNKPlayer {
         }
         return optimalCellValue;
     }
+
+
+
+    public HashSet<HashSet<MNKCell>> getAllWinningAliments(MNKBoard board) {
+        HashSet<HashSet<MNKCell>> allAligments = new HashSet<>();
+        for (MNKCell markedCell : board.getMarkedCells()) {
+            // find all possible alignments that contain markedCell
+            for (int x = 0; x < board.K; x++) {
+                HashSet<MNKCell> horizontalAlignment = new HashSet<>();
+                HashSet<MNKCell> verticalAlignemnt = new HashSet<>();
+                HashSet<MNKCell> diagonalAlignment1 = new HashSet<>();
+                HashSet<MNKCell> diagonalAlignment2 = new HashSet<>();
+                for (int a = x; a < x+board.K; a++) {
+                    horizontalAlignment.add(new MNKCell(markedCell.i, markedCell.j+a));
+                    verticalAlignemnt.add(new MNKCell(markedCell.i+a, markedCell.j));
+                    diagonalAlignment1.add(new MNKCell(markedCell.i+a, markedCell.j+a));
+                    diagonalAlignment2.add(new MNKCell(markedCell.i+a, markedCell.j-a));
+                }
+                allAligments.add(horizontalAlignment);
+                allAligments.add(verticalAlignemnt);
+                allAligments.add(diagonalAlignment1);
+                allAligments.add(diagonalAlignment2);
+            }
+        }
+
+        return allAligments;
+    }
+
 
     public MNKCell selectCell(MNKCell[] FC, MNKCell[] MC) {
         //optimal cell intitalization
