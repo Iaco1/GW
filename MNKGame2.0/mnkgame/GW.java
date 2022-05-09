@@ -137,7 +137,7 @@ public class GW implements MNKPlayer {
         allPossibleAligments = getAllWinningAliments(b);
         for(HashSet<MNKCell> alignment : allPossibleAligments){
             if(!isInBoard(alignment)) allPossibleAligments.remove(alignment);
-            if(containsMark(/*enum for opponent*/)) allPossibleAligments.remove(alignment);
+            if(containsMark()) allPossibleAligments.remove(alignment);
 
         }
         Double optimalCellValue = -1000.0;
@@ -149,6 +149,8 @@ public class GW implements MNKPlayer {
         }
         return optimalCellValue;
     }
+
+
 
 
 
@@ -166,7 +168,7 @@ public class GW implements MNKPlayer {
                 HashSet<MNKCell> verticalAlignemnt = new HashSet<>();
                 HashSet<MNKCell> diagonalAlignment1 = new HashSet<>();
                 HashSet<MNKCell> diagonalAlignment2 = new HashSet<>();
-                for (int a = x; a < x+board.K; a++) {
+                for (int a = x-board.K+1; a < x+board.K-2; a++) {
                     horizontalAlignment.add(new MNKCell(markedCell.i, markedCell.j+a));
                     verticalAlignemnt.add(new MNKCell(markedCell.i+a, markedCell.j));
                     diagonalAlignment1.add(new MNKCell(markedCell.i+a, markedCell.j+a));

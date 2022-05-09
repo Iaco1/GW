@@ -4,8 +4,12 @@ import org.junit.Assert;
 
 public class Test {
 
-    @Test
-    public void getAllWinningAlimentsTest() {
+    public static void main(String[] args) {
+        getAllWinningAlimentsTest();
+    }
+
+    //@Test
+    public static void getAllWinningAlimentsTest() {
 
         MNKBoard b = new MNKBoard(3,3,3);
         GW player = new GW();
