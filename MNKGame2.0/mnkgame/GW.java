@@ -169,10 +169,10 @@ public class GW implements MNKPlayer {
      * Discards alignments that are out of bounds and alignments that don't produce a win for the considered player
      * @param allPossibleAligments
      */
-    public void filter(HashSet<HashSet<MNKCell>> allPossibleAligments){
+    public void filter(HashSet<HashSet<MNKCell>> allPossibleAligments, int currentPlayer){
         for(HashSet<MNKCell> alignment : allPossibleAligments){
             if(!isInBoard(alignment)) allPossibleAligments.remove(alignment);
-            if(containsMark(alignment)) allPossibleAligments.remove(alignment);
+            if(containsMark(currentPlayer, alignment)) allPossibleAligments.remove(alignment);
         }
     }
     
@@ -224,7 +224,7 @@ public class GW implements MNKPlayer {
         //allPossibleAligmentsOpponent = getAllWinningAliments(opponent);
 
         //discard the ones that are out of the board and the ones that don't produce a win for the considered player
-        filter(allPossibleAligmentsGW, int currentPlayer);
+        filter(allPossibleAligmentsGW, player);
         //filter(allPossibleAligmentsOpponent);
 
         //
