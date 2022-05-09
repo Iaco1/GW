@@ -137,7 +137,7 @@ public class GW implements MNKPlayer {
         allPossibleAligments = getAllWinningAliments(b);
         for(HashSet<MNKCell> alignment : allPossibleAligments){
             if(!isInBoard(alignment)) allPossibleAligments.remove(alignment);
-            if(containsMark(/*enum for opponent*/)) allPossibleAligments.remove(alignement);
+            if(containsMark(/*enum for opponent*/)) allPossibleAligments.remove(alignment);
 
         }
         Double optimalCellValue = -1000.0;
@@ -152,6 +152,11 @@ public class GW implements MNKPlayer {
 
 
 
+    /**
+     * creates a set of all possible winning alignments without consideration of other marked cells
+     * @param board 
+     * @return
+     */
     public HashSet<HashSet<MNKCell>> getAllWinningAliments(MNKBoard board) {
         HashSet<HashSet<MNKCell>> allAligments = new HashSet<>();
         for (MNKCell markedCell : board.getMarkedCells()) {
