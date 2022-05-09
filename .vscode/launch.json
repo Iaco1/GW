@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch MNKPlayerTester",
+            "request": "launch",
+            "mainClass": "mnkgame.MNKPlayerTester",
+            "projectName": "GW_ecb4be52"
+        },
+        {
+            "type": "java",
             "name": "Tester 333 random++ vs GW",
             "request": "launch",
             "mainClass": "mnkgame.MNKPlayerTester",
@@ -62,7 +69,7 @@
             "name": "Alignements tester",
             "request": "launch",
             "mainClass": "mnkgame.Test",
-            "projectName": "GW_e4941194",
+            "projectName": "GW_e4941194"
         }
     ]
 }
