@@ -19,7 +19,7 @@ public class GW implements MNKPlayer {
             default: return "";
         }
     }
-/*
+
     public MNKCellState intToMNKCellState(int player){
         switch(player){
             case 0: return MNKCellState.P1;
@@ -28,13 +28,13 @@ public class GW implements MNKPlayer {
         }
     }
     public int MNKCellStateToInt(MNKCellState state){
-        switch{
-            case MNKCellState.P1:{ return 0;}
-            case MNKCellState.P2: {return 1;}
-            default: {return 2;}
+        switch(state){
+            case P1:{ return 0;}
+            case P2:{ return 1;}
+            default:{ return 2;}
         }
     }
-    */
+
     /**
      * placeholder
      */
@@ -54,28 +54,6 @@ public class GW implements MNKPlayer {
         }
     }
     
-    
-
-    /**
-     * k == 3 version
-     * @param b
-     * @return the number of winning alinements the current player has at its disposal
-     */
-    /*public int winningAlinements(MNKBoard b){
-        int alignements = 0;
-        HashSet<MNKCell> alignement = new HashSet<>();
-        for(MNKCell cell : b.getMarkedCells()){
-            //get all possible alignements from this cell into a set
-            //discard all alignements that can't lead to a victory in the next move
-            //discard alignements that are already \in alignement
-            //alignement = alignemnet union this iteration set
-        }
-        //return size of winning alinements for the current player
-    }*/
-
-    //public Double evaluateMidGame(){}
-        // if winningAlinements() > 1 return evaluation based on who's the current player and who's the adversary
-
     /**
      * an implementation of minmax for mnk games
      * @param b The board on which to perform minmax
@@ -190,13 +168,13 @@ public class GW implements MNKPlayer {
     /**
      * Discards alignments that are out of bounds and alignments that don't produce a win for the considered player
      * @param allPossibleAligments
-     *//*
+     */
     public void filter(HashSet<HashSet<MNKCell>> allPossibleAligments){
         for(HashSet<MNKCell> alignment : allPossibleAligments){
             if(!isInBoard(alignment)) allPossibleAligments.remove(alignment);
-            if(containsMark( enumfor opponent)) allPossibleAligments.remove(alignment);
+            if(containsMark(alignment) allPossibleAligments.remove(alignment);
         }
-    }*/
+    }
     
     /**
      * Returns true if the all cells are in the bounds of the board
@@ -220,28 +198,28 @@ public class GW implements MNKPlayer {
      * It does so by computing the likeliness that selecting a free cell will result in a win and returning the value of the best move the player has.
      * @param b The board, with an MNKGameState.OPEN, that we want to evaluate. 
      * @return The likeliness that the current player will win
-     *//*
+     */
     public Double heuristic(MNKBoard b){
         //get all possible aligments for both players
         HashSet<HashSet<MNKCell>> allPossibleAligmentsGW = new HashSet<>();
         //HashSet<HashSet<MNKCell>> allPossibleAligmentsOpponent = new HashSet<>();
-        allPossibleAligmentsGW = getAllWinningAliments(GW);
+        allPossibleAligmentsGW = getAllWinningAliments(b);
         //allPossibleAligmentsOpponent = getAllWinningAliments(opponent);
 
         //discard the ones that are out of the board and the ones that don't produce a win for the considered player
-        filter(allPossibleAligmentsGW);
+        filter(allPossibleAligmentsGW, int currentPlayer);
         //filter(allPossibleAligmentsOpponent);
 
         //
         Double optimalCellValue = -1000.0;
         for(HashSet<MNKCell> alignment : allPossibleAligmentsGW){
             for(MNKCell cell : alignment){
-                Double currentCellValue = computeValue(cell, alignment, allPossibleAligmentsGW, b.K);
+                Double currentCellValue = computeValue(cell, alignment, allPossibleAligmentsGW);
                 if(currentCellValue > optimalCellValue) optimalCellValue = currentCellValue;
             }
         }
         return optimalCellValue;
-    }*/
+    }
 
 
 
