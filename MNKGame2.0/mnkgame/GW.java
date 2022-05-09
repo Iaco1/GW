@@ -132,7 +132,7 @@ public class GW implements MNKPlayer {
         player = (first) ? 0 : 1;
     }
 
-    public Double heuristic(MNKBoard b){
+    /**public Double heuristic(MNKBoard b){
         HashSet<HashSet<MNKCell>> allPossibleAligments = new HashSet<>();
         allPossibleAligments = getAllWinningAliments(b);
         for(HashSet<MNKCell> alignment : allPossibleAligments){
@@ -148,7 +148,7 @@ public class GW implements MNKPlayer {
             }
         }
         return optimalCellValue;
-    }
+    }*/
 
 
 
@@ -157,27 +157,30 @@ public class GW implements MNKPlayer {
     /**
      * creates a set of all possible winning alignments without consideration of other marked cells
      * @param board 
-     * @return
+     * @return set of all possible winning alignments
      */
     public HashSet<HashSet<MNKCell>> getAllWinningAliments(MNKBoard board) {
         HashSet<HashSet<MNKCell>> allAligments = new HashSet<>();
         for (MNKCell markedCell : board.getMarkedCells()) {
+            // consider only the alignments of the current player
+            if ((markedCell.state.equals(MNKCellState.P1) && board.currentPlayer() == 0) || (markedCell.state.equals(MNKCellState.P2) && board.currentPlayer() == 1)) {
             // find all possible alignments that contain markedCell
-            for (int x = 0; x < board.K; x++) {
-                HashSet<MNKCell> horizontalAlignment = new HashSet<>();
-                HashSet<MNKCell> verticalAlignemnt = new HashSet<>();
-                HashSet<MNKCell> diagonalAlignment1 = new HashSet<>();
-                HashSet<MNKCell> diagonalAlignment2 = new HashSet<>();
-                for (int a = x-board.K+1; a < x+board.K-2; a++) {
-                    horizontalAlignment.add(new MNKCell(markedCell.i, markedCell.j+a));
-                    verticalAlignemnt.add(new MNKCell(markedCell.i+a, markedCell.j));
-                    diagonalAlignment1.add(new MNKCell(markedCell.i+a, markedCell.j+a));
-                    diagonalAlignment2.add(new MNKCell(markedCell.i+a, markedCell.j-a));
+                for (int x = 0; x < board.K; x++) {
+                    HashSet<MNKCell> horizontalAlignment = new HashSet<>();
+                    HashSet<MNKCell> verticalAlignemnt = new HashSet<>();
+                    HashSet<MNKCell> diagonalAlignment1 = new HashSet<>();
+                    HashSet<MNKCell> diagonalAlignment2 = new HashSet<>();
+                    for (int a = x-board.K+1; a <= x+board.K-1; a++) {
+                        horizontalAlignment.add(new MNKCell(markedCell.i, markedCell.j+a));
+                        verticalAlignemnt.add(new MNKCell(markedCell.i+a, markedCell.j));
+                        diagonalAlignment1.add(new MNKCell(markedCell.i+a, markedCell.j+a));
+                        diagonalAlignment2.add(new MNKCell(markedCell.i+a, markedCell.j-a));
+                    }
+                    allAligments.add(horizontalAlignment);
+                    allAligments.add(verticalAlignemnt);
+                    allAligments.add(diagonalAlignment1);
+                    allAligments.add(diagonalAlignment2);
                 }
-                allAligments.add(horizontalAlignment);
-                allAligments.add(verticalAlignemnt);
-                allAligments.add(diagonalAlignment1);
-                allAligments.add(diagonalAlignment2);
             }
         }
 

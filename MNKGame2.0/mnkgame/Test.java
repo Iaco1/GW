@@ -14,6 +14,7 @@ public class Test {
         MNKBoard b = new MNKBoard(3,3,3);
         GW player = new GW();
         b.markCell(1,1);
+        b.markCell(1,2);
         
         //HashSet<HashSet<MNKCell>> alignments = new HashSet<>();
 
