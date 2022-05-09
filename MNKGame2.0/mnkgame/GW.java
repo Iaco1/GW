@@ -22,8 +22,20 @@ public class GW implements MNKPlayer {
         }
     }
 
-
-
+    public MNKCellState intToMNKCellState(int player){
+        switch(player){
+            case 0: return MNKCellState.P1;
+            case 1: return MNKCellState.P2;
+            default: return MNKCellState.FREE;
+        }
+    }
+    public int MNKCellStateToInt(MNKCellState state){
+        switch{
+            case MNKCellState.P1: return 0;
+            case MNKCellState.P2: return 1;
+            default: return 2;
+        }
+    }
     /**
      * placeholder
      */
@@ -134,23 +146,107 @@ public class GW implements MNKPlayer {
         player = (first) ? 0 : 1;
     }
 
-    public Double heuristic(MNKBoard b){
-        HashSet<HashSet<MNKCell>> allPossibleAligments = new HashSet<>();
-        allPossibleAligments = getAllWinningAliments();
+    /**
+     * Assigns a value \in [-1, 1] to <code> cell </code>.
+     * The formula used is (# marked cell in alignment + 1) / k     +       (# times the cell appears in all the winning alignments / 4*k*k)    
+     * @param cell The cell to be evaluated
+     * @param currentAligment The alignment (set of cells) the cell belongs to
+     * @param winningAlignments The set of all alignments for the board in this state
+     * @param k The number of marked cell in a row or column or diagonal that produces a win
+     * @return The likeliness that the current player will win
+     */
+    public Double computeValue(MNKCell cell, HashSet<MNKCell> currentAligment, HashSet<HashSet<MNKCell>> winningAlignments){
+        Integer k = board.K;
+        
+        //compute base value
+        double value = 0.0;
+        if(cell.state != MNKCellState.FREE) return -1.0;
+        //cell must be free
+
+        //count no. cells that are already marked
+        Integer marked = 0;
+        for(MNKCell currentCell : currentAligment){
+            if(currentCell.state != MNKCellState.FREE) marked++;
+        }//maybe we can use the built-in search functions if we can find a way to compare to cells based on who's marked it
+
+        marked++; //this counts the parameter: cell
+        value += (double)(marked) / (double)(k);
+
+        //compute increment based on how many alignments this cell intersects
+        Integer possibleAlignments = 4*k;
+        Integer intersectedAlignments = 0;
+
+        for(HashSet<MNKCell> alignment : winningAlignments){
+            for(MNKCell currentCell : alignment){
+                if(currentCell.equals(cell)) intersectedAlignments++;
+            }
+        }
+        value += ((double)intersectedAlignments / (double)(possibleAlignments * k));
+        return value;
+    }
+    //we could compute the values for the enemy's alignment and compute our values accordingly
+    //e.g. if our move has a high win probaiblity for our player but also has a high win probability for the opponent we should consider playing other moves
+    //the logic could be better understood with visuals and pen and paper
+
+    /**
+     * Discards alignments that are out of bounds and alignments that don't produce a win for the considered player
+     * @param allPossibleAligments
+     */
+    public void filter(HashSet<HashSet<MNKCell>> allPossibleAligments){
         for(HashSet<MNKCell> alignment : allPossibleAligments){
             if(!isInBoard(alignment)) allPossibleAligments.remove(alignment);
-            if(containsMark(/*enum for opponent*/)) allPossibleAligments.remove(alignement);
-
+            if(containsMark( enumfor opponent)) allPossibleAligments.remove(alignment);
         }
+    }
+    
+    /**
+     * Returns true if the all cells are in the bounds of the board
+     * @param alignment The alignment to be considered
+     * @return true if the all cells are in the bounds of the board
+     */
+    public boolean isInBoard(HashSet<MNKCell> alignment){
+        Integer m = board.M, n = board.N;
+        for(MNKCell cell : alignment){
+            if(cell.i >= 0 && cell.i < m && cell.j >= 0 && cell.j < n) continue;
+            else return false;
+        }
+        return true;
+    }
+
+    public boolean containsMark(int player){
+        
+    }
+
+    /**
+     * This is an Evaluation function.
+     * It seeks to predict the likeliness that the state of an open game will result in a win for the player that will play the next move.
+     * It does so by computing the likeliness that selecting a free cell will result in a win and returning the value of the best move the player has.
+     * @param b The board, with an MNKGameState.OPEN, that we want to evaluate. 
+     * @return The likeliness that the current player will win
+     */
+    public Double heuristic(MNKBoard b){
+        //get all possible aligments for both players
+        HashSet<HashSet<MNKCell>> allPossibleAligmentsGW = new HashSet<>();
+        //HashSet<HashSet<MNKCell>> allPossibleAligmentsOpponent = new HashSet<>();
+        allPossibleAligmentsGW = getAllWinningAliments(GW);
+        //allPossibleAligmentsOpponent = getAllWinningAliments(opponent);
+
+        //discard the ones that are out of the board and the ones that don't produce a win for the considered player
+        filter(allPossibleAligmentsGW);
+        //filter(allPossibleAligmentsOpponent);
+
+        //
         Double optimalCellValue = -1000.0;
-        for(HashSet<MNKCell> alignment : allPossibleAligments){
+        for(HashSet<MNKCell> alignment : allPossibleAligmentsGW){
             for(MNKCell cell : alignment){
-                Double currentCellValue = computeValue(cell);
+                Double currentCellValue = computeValue(cell, alignment, allPossibleAligmentsGW, b.K);
                 if(currentCellValue > optimalCellValue) optimalCellValue = currentCellValue;
             }
         }
         return optimalCellValue;
     }
+    //considering opponents best moves was not added yet
+
 
     public MNKCell selectCell(MNKCell[] FC, MNKCell[] MC) {
         //optimal cell intitalization

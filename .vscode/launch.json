@@ -62,7 +62,7 @@
             "name": "Alignements tester",
             "request": "launch",
             "mainClass": "mnkgame.Test",
-            "projectName": "GW_e4941194",
+            "projectName": "GW_e4941194"
         }
     ]
 }
