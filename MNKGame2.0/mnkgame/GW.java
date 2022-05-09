@@ -132,7 +132,7 @@ public class GW implements MNKPlayer {
         player = (first) ? 0 : 1;
     }
 
-    /**public Double heuristic(MNKBoard b){
+    public Double heuristic(MNKBoard b){
         HashSet<HashSet<MNKCell>> allPossibleAligments = new HashSet<>();
         allPossibleAligments = getAllWinningAliments(b);
         for(HashSet<MNKCell> alignment : allPossibleAligments){
@@ -148,7 +148,7 @@ public class GW implements MNKPlayer {
             }
         }
         return optimalCellValue;
-    }*/
+    }
 
 
 

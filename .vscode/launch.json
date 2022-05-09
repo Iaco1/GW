@@ -3,6 +3,27 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch MNKGame",
+            "request": "launch",
+            "mainClass": "mnkgame.MNKGame",
+            "projectName": "GW_ecb4be52"
+        },
+        {
+            "type": "java",
+            "name": "Launch Tests",
+            "request": "launch",
+            "mainClass": "mnkgame.Tests",
+            "projectName": "GW_ecb4be52"
+        },
+        {
+            "type": "java",
+            "name": "Launch Test",
+            "request": "launch",
+            "mainClass": "mnkgame.Test",
+            "projectName": "GW_ecb4be52"
+        },
+        {
+            "type": "java",
             "name": "Launch MNKPlayerTester",
             "request": "launch",
             "mainClass": "mnkgame.MNKPlayerTester",
@@ -69,7 +90,7 @@
             "name": "Alignements tester",
             "request": "launch",
             "mainClass": "mnkgame.Test",
-            "projectName": "GW_e4941194"
+            "projectName": "GW_ecb4be52"
         }
     ]
 }
