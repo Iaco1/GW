@@ -4,6 +4,8 @@ import java.util.HashSet;
 
 /**
  * Draft implementation of an mnk-player
+ * @author Davide Iacomino
+ * @author Leonie Brockmann
  */
 public class GW implements MNKPlayer {
     protected MNKBoard board;
@@ -11,6 +13,12 @@ public class GW implements MNKPlayer {
     protected int player;
     final Double MIN = -1000000000.0;
 
+    /**
+     * Converts MNKCellState to a length 1 String
+     * @param cs The MNKCellState you want to visualise
+     * @return The String corresponding to a Tic-Tac-Toe Symbol
+     * @author Davide Iacomino
+     */
     public static String toSymbol(MNKCellState cs){
         switch(cs){
             case P1:{ return "X"; }
@@ -20,6 +28,12 @@ public class GW implements MNKPlayer {
         }
     }
 
+    /**
+     * Casting method
+     * @param player
+     * @return P1 for 0, P2 for 1, FREE by default
+     * @author Davide Iacomino
+     */
     public MNKCellState intToMNKCellState(int player){
         switch(player){
             case 0: return MNKCellState.P1;
@@ -27,6 +41,12 @@ public class GW implements MNKPlayer {
             default: return MNKCellState.FREE;
         }
     }
+    /**
+     * Casting method
+     * @param state
+     * @return 0 for P1, 1 for P2, 2 as default
+     * @author Davide Iacomino
+     */
     public int MNKCellStateToInt(MNKCellState state){
         switch(state){
             case P1:{ return 0;}
@@ -36,7 +56,10 @@ public class GW implements MNKPlayer {
     }
 
     /**
-     * placeholder
+     * placeholder evaluation function for the end-game
+     * @param board
+     * @return 1 if GW won, 0 if the game ended in a draw, -1 if the opponent won
+     * @author Davide Iacomino
      */
     public Double evaluateEndGame(MNKBoard board){
         switch(board.gameState()){
@@ -59,6 +82,7 @@ public class GW implements MNKPlayer {
      * @param b The board on which to perform minmax
      * @param max The player that is now moving, max => our player
      * @return the value of the current move
+     * @author Davide Iacomino
      */
     public Double minmax(MNKBoard b, boolean max){
         Double eval;
@@ -90,6 +114,7 @@ public class GW implements MNKPlayer {
      * @param alpha The minimum attainable score for the player
      * @param beta The maximum attainable score for the adversary
      * @return The value of the current move
+     * @author Davide Iacomino
      */
     public Double alphaBeta(MNKBoard b, boolean max, double alpha, double beta){
         Double eval;
@@ -116,6 +141,14 @@ public class GW implements MNKPlayer {
         return eval;
     }
 
+    /**
+     * @param M 
+     * @param N
+     * @param K 
+     * @param first True if GW is P1
+     * @param timeout_in_secs
+     * @author Davide Iacomino
+     */
     public void initPlayer(int M, int N, int K, boolean first, int timeout_in_secs) {
         board = new MNKBoard(M, N, K);
         timeout = timeout_in_secs;
@@ -131,10 +164,11 @@ public class GW implements MNKPlayer {
      * @param winningAlignments The set of all alignments for the board in this state
      * @param k The number of marked cell in a row or column or diagonal that produces a win
      * @return The likeliness that the current player will win
+     * @author Davide Iacomino
      */
     public Double computeValue(MNKCell cell, HashSet<MNKCell> currentAlignment, HashSet<HashSet<MNKCell>> winningAlignments){
         Integer k = board.K;
-        
+
         //compute base value
         double value = 0.0;
         if(cell.state != MNKCellState.FREE) return -1.0;
@@ -167,12 +201,14 @@ public class GW implements MNKPlayer {
 
     /**
      * Discards alignments that are out of bounds and alignments that don't produce a win for the considered player
-     * @param allPossibleAlignments
+     * @param allPossibleAlignments The set of all alignments that contain the marked cells in a given board
+     * @param currentPlayer The Player whose alignments we want to consider
+     * @author Davide Iacomino
      */
     public void filter(HashSet<HashSet<MNKCell>> allPossibleAlignments, int currentPlayer){
         for(HashSet<MNKCell> alignment : allPossibleAlignments){
-            if(!isInBoard(alignment)) allPossibleAlignments.remove(alignment);
-            if(containsMark(currentPlayer, alignment)) allPossibleAlignments.remove(alignment);
+            if(!isInBoard(alignment)) alignment.clear();
+            else if(containsMark(currentPlayer, alignment)) alignment.clear();
         }
     }
     
@@ -180,6 +216,7 @@ public class GW implements MNKPlayer {
      * Returns true if the all cells are in the bounds of the board
      * @param alignment The alignment to be considered
      * @return true if the all cells are in the bounds of the board
+     * @author Davide Iacomino
      */
     public boolean isInBoard(HashSet<MNKCell> alignment){
         Integer m = board.M, n = board.N;
@@ -195,6 +232,7 @@ public class GW implements MNKPlayer {
      * @param player current player
      * @param alignment 
      * @return true, if the alignment contains mark of the other player
+     * @author Leonie Brockmann
      */
     public boolean containsMark(int player, HashSet<MNKCell> alignment){
         boolean containsMarkOfOtherPlayer = true;
@@ -215,6 +253,7 @@ public class GW implements MNKPlayer {
      * It does so by computing the likeliness that selecting a free cell will result in a win and returning the value of the best move the player has.
      * @param b The board, with an MNKGameState.OPEN, that we want to evaluate. 
      * @return The likeliness that the current player will win
+     * @author Davide Iacomino
      */
     public Double heuristic(MNKBoard b){
         //get all possible alignments for both players
@@ -234,14 +273,11 @@ public class GW implements MNKPlayer {
         return optimalCellValue;
     }
 
-
-
-
-
     /**
      * creates a set of all possible winning alignments without consideration of other marked cells
      * @param board 
      * @return set of all possible winning alignments
+     * @author Leonie Brockmann
      */
     public HashSet<HashSet<MNKCell>> getAllWinningAlignments(MNKBoard board) {
         HashSet<HashSet<MNKCell>> allAlignments = new HashSet<>();
@@ -273,7 +309,12 @@ public class GW implements MNKPlayer {
     //considering opponents best moves was not added yet
 
 
-
+    /**
+     * Our current best guess for how to win any game
+     * @param FC
+     * @param MC
+     * @author Davide Iacomino
+     */
     public MNKCell selectCell(MNKCell[] FC, MNKCell[] MC) {
         //optimal cell intitalization
         Double optimalValue = MIN;

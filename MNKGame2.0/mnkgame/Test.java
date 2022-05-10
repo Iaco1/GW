@@ -2,39 +2,32 @@ package mnkgame;
 import org.junit.Assert;
 import java.util.HashSet;
 
+/**
+ * Testing class for GW methods
+ * @author Leonie Brockmann 
+ */
 public class Test {
+    //uses getAllWinningAlignments
+    /**
+     * Tests whether this 3,3,3 game board has cells valued according to our current alignment heuristic:
+     * x    0.6     0.6
+     * 0.6  o       o
+     * 0.8  0.6     x
+     * @author Davide Iacomino
+     */
     public static void computeValueTest() {
-        MNKBoard b = new MNKBoard(3, 3, 3);
-        b.markCell(0, 0);
-        b.markCell(1, 1);
-        b.markCell(2, 2);
-        b.markCell(1, 2);
-        
-
-        HashSet<HashSet<MNKCell>> allWinningAlignments = new HashSet<>();
-        HashSet<MNKCell> alignment = new HashSet<>();
-
-        alignment.add(b.getMarkedCells()[0]);
-        alignment.add(new MNKCell(1, 0, MNKCellState.FREE));
-        alignment.add(new MNKCell(2, 0, MNKCellState.FREE));
-
-        allWinningAlignments.add(alignment);
-
-
-        alignment = new HashSet<>();
-        alignment.add(b.getMarkedCells()[0]);
-        alignment.add(new MNKCell(0, 1, MNKCellState.FREE));
-        alignment.add(new MNKCell(0, 2, MNKCellState.FREE));
-        allWinningAlignments.add(alignment);
-
-
-        alignment = new HashSet<>();
-        alignment.add(b.getMarkedCells()[2]);
-        alignment.add(new MNKCell(2, 1, MNKCellState.FREE));
-        alignment.add(new MNKCell(2, 0, MNKCellState.FREE));
-        allWinningAlignments.add(alignment);
-
         GW gw = new GW();
+
+        gw.board =  new MNKBoard(3, 3, 3);
+        gw.board.markCell(0, 0);
+        gw.board.markCell(1, 1);
+        gw.board.markCell(2, 2);
+        gw.board.markCell(1, 2);
+        
+        HashSet<HashSet<MNKCell>> allWinningAlignments = gw.getAllWinningAlignments(gw.board);
+
+        gw.filter(allWinningAlignments, 0);
+        
         for(HashSet<MNKCell> currentAligment : allWinningAlignments){
             for(MNKCell cell : currentAligment){
                 Double value = gw.computeValue(cell, currentAligment, allWinningAlignments);
@@ -45,11 +38,11 @@ public class Test {
         System.out.println("just don't stop yet");
 
     }
-    public static void main(String[] args) {
-        getAllWinningAlimentsTest();
-    }
 
-    //@Test
+    /**
+     * Tests whether you get the expected 12 alignments in the set
+     * @author Leonie Brockmann
+     */
     public static void getAllWinningAlimentsTest() {
 
         MNKBoard b = new MNKBoard(3,3,3);
@@ -63,11 +56,12 @@ public class Test {
         //alignments.add(new HashSet<>()); 
 
 
-
-        Assert.assertEquals(player.getAllWinningAliments(b).size(), 12);
-
+        HashSet<HashSet<MNKCell>> awa = player.getAllWinningAlignments(b);
+        Assert.assertEquals(awa.size(), 12);
 
     }
 
-    
+    public static void main(String[] args) {
+        getAllWinningAlimentsTest();
+    }
 }

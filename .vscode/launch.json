@@ -87,7 +87,14 @@
         },
         {
             "type": "java",
-            "name": "Alignements tester",
+            "name": "Alignements tester-Davide",
+            "request": "launch",
+            "mainClass": "mnkgame.Test",
+            "projectName": "GW_e4941194"
+        },
+        {
+            "type": "java",
+            "name": "Alignements tester-Leonie",
             "request": "launch",
             "mainClass": "mnkgame.Test",
             "projectName": "GW_ecb4be52"
