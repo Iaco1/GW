@@ -1,6 +1,7 @@
 package mnkgame;
-import org.junit.Assert;
 import java.util.HashSet;
+
+import org.junit.Assert;
 
 /**
  * Testing class for GW methods

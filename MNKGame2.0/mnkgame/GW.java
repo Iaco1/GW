@@ -280,7 +280,7 @@ public class GW implements MNKPlayer {
                     HashSet<MNKCell> verticalAlignment = new HashSet<>();
                     HashSet<MNKCell> diagonalAlignment1 = new HashSet<>();
                     HashSet<MNKCell> diagonalAlignment2 = new HashSet<>();
-                    for (int a = x-board.K+1; a <= x+board.K-1; a++) {
+                    for (int a = x-board.K+1; a < x+1; a++) {
                         horizontalAlignment.add(new MNKCell(markedCell.i, markedCell.j+a));
                         verticalAlignment.add(new MNKCell(markedCell.i+a, markedCell.j));
                         diagonalAlignment1.add(new MNKCell(markedCell.i+a, markedCell.j+a));
