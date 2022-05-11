@@ -16,6 +16,13 @@ public class GW implements MNKPlayer {
     protected EvaluationBoard evBoard;
 
     
+    public MNKCellState getOpponent(MNKCellState state){
+        switch(state){
+            case P1: { return MNKCellState.P2; }
+            case P2: { return MNKCellState.P1; }
+            default: { return MNKCellState.FREE;} //Should I return an Exception here?
+        }
+    }
 
     /**
      * Casting method
@@ -65,35 +72,6 @@ public class GW implements MNKPlayer {
             }
         }
     }
-    
-    /**
-     * an implementation of minmax for mnk games
-     * @param b The board on which to perform minmax
-     * @param max The player that is now moving, max => our player
-     * @return the value of the current move
-     * @author Davide Iacomino
-     */
-    public Double minmax(MNKBoard b, boolean max){
-        Double eval;
-        if(b.gameState() != MNKGameState.OPEN) return evaluateEndGame(b);
-        else if(max){
-            eval = MIN;
-            for(MNKCell freecell : b.getFreeCells()){
-                b.markCell(freecell.i, freecell.j);
-                eval = Double.max(eval, minmax(b, false));
-                b.unmarkCell();
-            }
-        }else{
-            eval = Double.MAX_VALUE;
-            for(MNKCell freecell : b.getFreeCells()){
-                b.markCell(freecell.i, freecell.j);
-                eval = Double.min(eval, minmax(b, true));
-                b.unmarkCell();
-            }
-        }
-        return eval;
-    }
-
 
     /**
      * An implementation of the alpha-beta pruning algorithm for an mnk-game.
@@ -231,16 +209,13 @@ public class GW implements MNKPlayer {
      * @author Leonie Brockmann
      */
     public boolean containsMark(int player, HashSet<MNKCell> alignment){
-        boolean containsMarkOfOtherPlayer = true;
+        MNKCellState opponentState = getOpponent(intToMNKCellState(player));
 
         for (MNKCell cell : alignment) {
-            if (MNKCellStateToInt(cell.state) != player) {
-                containsMarkOfOtherPlayer = true;
-                break;
-            }
+            if (cell.state == opponentState) return true;
         }
 
-        return containsMarkOfOtherPlayer;
+        return false;
     }
 
     /**
