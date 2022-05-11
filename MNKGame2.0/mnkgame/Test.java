@@ -25,13 +25,13 @@ public class Test {
         gw.board.markCell(2, 2);
         gw.board.markCell(1, 2);
         
-        HashSet<HashSet<MNKCell>> allWinningAlignments = gw.getAllWinningAlignments(gw.board);
+        gw.createAllWinningAlignments();
 
-        gw.filter(allWinningAlignments, 0);
+        gw.filter(0);
         
-        for(HashSet<MNKCell> currentAligment : allWinningAlignments){
+        for(HashSet<MNKCell> currentAligment : gw.allWinningAlignments){
             for(MNKCell cell : currentAligment){
-                Double value = gw.computeValue(cell, currentAligment, allWinningAlignments);
+                Double value = gw.computeValue(cell, currentAligment, gw.allWinningAlignments);
                 System.out.print("(" + cell.i + ", " + cell.j + ", " + value + "), ");
             }
             System.out.println();
@@ -44,7 +44,7 @@ public class Test {
      * Tests whether you get the expected 12 alignments in the set
      * @author Leonie Brockmann
      */
-    public static void getAllWinningAlimentsTest() {
+    public static void createAllWinningAlignmentsTest() {
 
         MNKBoard b = new MNKBoard(3,3,3);
         GW player = new GW();
@@ -57,12 +57,13 @@ public class Test {
         //alignments.add(new HashSet<>()); 
 
 
-        HashSet<HashSet<MNKCell>> awa = player.getAllWinningAlignments(b);
-        Assert.assertEquals(awa.size(), 12);
+        player.createAllWinningAlignments();
+        Assert.assertEquals(player.allWinningAlignments.size(), 12);
 
     }
 
     public static void main(String[] args) {
-        getAllWinningAlimentsTest();
+        createAllWinningAlignmentsTest();
+        computeValueTest();
     }
 }
