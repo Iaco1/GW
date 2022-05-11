@@ -272,8 +272,6 @@ public class GW implements MNKPlayer {
 
     /**
      * creates a set of all possible winning alignments without consideration of other marked cells
-     * @param board 
-     * @return set of all possible winning alignments
      * @author Leonie Brockmann
      */
     public void createAllWinningAlignments() {
@@ -300,7 +298,7 @@ public class GW implements MNKPlayer {
                     alignmentdirections.add(diagonalAlignment1);
                     alignmentdirections.add(diagonalAlignment2);
                     for (HashSet<MNKCell> elem : alignmentdirections) {
-                        if (isInBoard(elem)) {
+                        if (isInBoard(elem) && !containsMark(this.player, elem)) {
                             this.allWinningAlignments.add(elem);
                         }
                     }
