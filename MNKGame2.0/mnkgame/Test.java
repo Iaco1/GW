@@ -47,9 +47,11 @@ public class Test {
     public static void createAllWinningAlignmentsTest() {
 
         MNKBoard b = new MNKBoard(3,3,3);
+
         GW player = new GW();
         b.markCell(1,1);
         b.markCell(1,2);
+        player.setBoard(b);
         
         //HashSet<HashSet<MNKCell>> alignments = new HashSet<>();
 
@@ -58,12 +60,12 @@ public class Test {
 
 
         player.createAllWinningAlignments();
-        Assert.assertEquals(player.allWinningAlignments.size(), 12);
+        Assert.assertEquals(player.allWinningAlignments.size(), 4);
 
     }
 
     public static void main(String[] args) {
         createAllWinningAlignmentsTest();
-        computeValueTest();
+        //computeValueTest();
     }
 }

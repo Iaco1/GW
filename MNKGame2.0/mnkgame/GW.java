@@ -204,6 +204,10 @@ public class GW implements MNKPlayer {
         }
     }
     
+
+   
+
+
     /**
      * Returns true if the all cells are in the bounds of the board
      * @param alignment The alignment to be considered
@@ -250,7 +254,7 @@ public class GW implements MNKPlayer {
     public Double heuristic(MNKBoard b){
         //get all possible alignments for both players
         HashSet<HashSet<MNKCell>> allPossibleAlignmentsGW = new HashSet<>();
-        createAllWinningAlignments(b);
+        createAllWinningAlignments();
         allPossibleAlignmentsGW = this.allWinningAlignments;
 
         //discard the ones that are out of the board and the ones that don't produce a win for the considered player
@@ -289,10 +293,17 @@ public class GW implements MNKPlayer {
                         diagonalAlignment1.add(new MNKCell(markedCell.i+a, markedCell.j+a));
                         diagonalAlignment2.add(new MNKCell(markedCell.i+a, markedCell.j-a));
                     }
-                    this.allWinningAlignments.add(horizontalAlignment);
-                    this.allWinningAlignments.add(verticalAlignment);
-                    this.allWinningAlignments.add(diagonalAlignment1);
-                    this.allWinningAlignments.add(diagonalAlignment2);
+
+                    HashSet<HashSet<MNKCell>> alignmentdirections = new HashSet<>();
+                    alignmentdirections.add(horizontalAlignment);
+                    alignmentdirections.add(verticalAlignment);
+                    alignmentdirections.add(diagonalAlignment1);
+                    alignmentdirections.add(diagonalAlignment2);
+                    for (HashSet<MNKCell> elem : alignmentdirections) {
+                        if (isInBoard(elem)) {
+                            this.allWinningAlignments.add(elem);
+                        }
+                    }
                 }
             }
         }
@@ -352,5 +363,9 @@ public class GW implements MNKPlayer {
 
     public String playerName() {
         return "GW";
+    }
+
+    public void setBoard(MNKBoard b) {
+        this.board = b;
     }
 }
