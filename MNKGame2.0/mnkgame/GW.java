@@ -12,21 +12,9 @@ public class GW implements MNKPlayer {
     protected int timeout;
     protected int player;
     final Double MIN = -1000000000.0;
+    protected EvaluationBoard evBoard;
 
-    /**
-     * Converts MNKCellState to a length 1 String
-     * @param cs The MNKCellState you want to visualise
-     * @return The String corresponding to a Tic-Tac-Toe Symbol
-     * @author Davide Iacomino
-     */
-    public static String toSymbol(MNKCellState cs){
-        switch(cs){
-            case P1:{ return "X"; }
-            case P2:{ return "O"; }
-            case FREE: { return " "; }
-            default: return "";
-        }
-    }
+    
 
     /**
      * Casting method
@@ -154,6 +142,8 @@ public class GW implements MNKPlayer {
         timeout = timeout_in_secs;
 
         player = (first) ? 0 : 1;
+
+        evBoard = new EvaluationBoard(M, N);
     }
 
     /**
@@ -308,29 +298,18 @@ public class GW implements MNKPlayer {
     }
     //considering opponents best moves was not added yet
 
-
     /**
-     * Our current best guess for how to win any game
-     * @param FC
-     * @param MC
-     * @author Davide Iacomino
+     * Driver class to select the best cell \in FC
      */
-    public MNKCell selectCell(MNKCell[] FC, MNKCell[] MC) {
+    public MNKCell alphaBetaDriver(MNKCell[] FC, MNKCell[] MC){
         //optimal cell intitalization
         Double optimalValue = MIN;
         MNKCell optimalCell = FC[0];
 
-        //debugging helper map
-        String[][] valueMap = new String[board.M][board.N];
-        for(MNKCell markedCell : MC){
-            valueMap[markedCell.i][markedCell.j] = toSymbol(markedCell.state);
-        }
-
-        //mark last played cell by the adversary
-        if(MC.length > 0) board.markCell(MC[MC.length-1].i, MC[MC.length-1].j);
-
+        //alpha-beta value intialization
         Double alpha = -1.0, beta = 1.0;
-        //compute the value of each available move
+
+        //running alpha beta on all free cells and memorizing the optimal cell to be marked
         for(MNKCell freeCell : FC){
             board.markCell(freeCell.i, freeCell.j);
             Double currentCellValue = alphaBeta(board, (board.currentPlayer() == player) ? true : false, alpha, beta);
@@ -340,19 +319,30 @@ public class GW implements MNKPlayer {
                 optimalCell = freeCell;
             }
             board.unmarkCell();
-            valueMap[freeCell.i][freeCell.j] = currentCellValue.toString();
+            evBoard.assignValue(currentCellValue, freeCell);
+        }
+        return optimalCell;
+    }
+
+    /**
+     * Our current best guess for how to win any game
+     * @param FC
+     * @param MC
+     * @author Davide Iacomino
+     */
+    public MNKCell selectCell(MNKCell[] FC, MNKCell[] MC) {
+        //mark last played cell by the adversary 
+        //and assigns a mark to the previously marked cells in evBoard
+        if(MC.length > 0){ 
+            board.markCell(MC[MC.length-1].i, MC[MC.length-1].j);
+            evBoard.assignMark(MC[MC.length-1]);
         }
 
+        //compute the value of each available move
+        MNKCell optimalCell = alphaBetaDriver(FC, MC);
+
         //prints out the board of marked cells and estimates of winning (for debugging)
-        /*System.out.println("________GW________");
-        for(String[] row : valueMap){
-            for(String element : row){
-                System.out.print(element+"      ");
-            }
-            System.out.println();
-        }
-        System.out.println("________GW________");
-*/
+        evBoard.printBoard(MC.length);
         board.markCell(optimalCell.i, optimalCell.j);
 
         return optimalCell;

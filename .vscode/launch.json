@@ -10,13 +10,6 @@
         },
         {
             "type": "java",
-            "name": "Launch Tests",
-            "request": "launch",
-            "mainClass": "mnkgame.Tests",
-            "projectName": "GW_ecb4be52"
-        },
-        {
-            "type": "java",
             "name": "Launch Test",
             "request": "launch",
             "mainClass": "mnkgame.Test",
