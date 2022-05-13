@@ -7,6 +7,11 @@ public class EvaluationBoard {
 
     public EvaluationBoard(int m, int n){
         valueMap = new String[m][n];
+        for(String[] row : valueMap){
+            for(String element : row){
+                element = "FREE";
+            }
+        }
     }
 
     /**
@@ -17,9 +22,9 @@ public class EvaluationBoard {
      */
     public static String toSymbol(MNKCellState cs){
         switch(cs){
-            case P1:{ return "X"; }
-            case P2:{ return "O"; }
-            case FREE: { return " "; }
+            case P1:{ return "XXXX"; }
+            case P2:{ return "OOOO"; }
+            case FREE: { return "FREE"; }
             default: return "";
         }
     }
@@ -29,14 +34,17 @@ public class EvaluationBoard {
     }
 
     public void assignValue(Double value, MNKCell cell){
-        valueMap[cell.i][cell.j] = value.toString();
+        //this should be cell.state == gw's player state but I can't access it and -1.0 are only assigned to gw's cells anyway
+        if(value.equals(-1.0) && cell.state != MNKCellState.FREE) valueMap[cell.i][cell.j] = toSymbol(cell.state);
+        else valueMap[cell.i][cell.j] = value.toString();
     }
 
     public void printBoard(int move){
         System.out.println("________MOVE" + move + "____");
         for(String[] row : valueMap){
             for(String element : row){
-                System.out.print(element+"      ");
+                if(element == null) System.out.print("FREE\t");
+                else System.out.print(element.substring(0, 4) + "\t");
             }
             System.out.println();
         }
