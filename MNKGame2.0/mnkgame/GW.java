@@ -83,14 +83,14 @@ public class GW implements MNKPlayer {
      * @return The value of the current move
      * @author Davide Iacomino
      */
-    public Double alphaBeta(MNKBoard b, boolean max, double alpha, double beta){
+    public Double alphaBeta(MNKBoard b, boolean max, double alpha, double beta, int goalDepth, int currentDepth){
         Double eval;
-        if(b.gameState != MNKGameState.OPEN) return evaluateEndGame(b);
+        if(b.gameState != MNKGameState.OPEN || currentDepth == goalDepth) return heuristic(b);
         else if(max){
             eval = MIN;
             for(MNKCell freeCell : b.getFreeCells()){
                 b.markCell(freeCell.i, freeCell.j);
-                eval = Double.max(eval, alphaBeta(b, false, alpha, beta));
+                eval = Double.max(eval, alphaBeta(b, false, alpha, beta, goalDepth, currentDepth+1));
                 b.unmarkCell();
                 alpha = Double.max(eval, alpha);
                 if(alpha >= beta) break;
@@ -99,7 +99,7 @@ public class GW implements MNKPlayer {
             eval = Double.MAX_VALUE;
             for(MNKCell freeCell : b.getFreeCells()){
                 b.markCell(freeCell.i, freeCell.j);
-                eval = Double.min(eval, alphaBeta(b, true, alpha, beta));
+                eval = Double.min(eval, alphaBeta(b, true, alpha, beta, goalDepth, currentDepth+1));
                 b.unmarkCell();
                 beta = Double.min(eval, beta);
                 if(alpha >= beta) break;
@@ -235,15 +235,13 @@ public class GW implements MNKPlayer {
         HashSet<HashSet<MNKCell>> allPossibleAlignmentsGW = new HashSet<>();
         createAllWinningAlignments();
         allPossibleAlignmentsGW = this.allWinningAlignments;
-
-        //discard the ones that are out of the board and the ones that don't produce a win for the considered player
-        filter(player);
         
         Double optimalCellValue = -1000.0;
         for(HashSet<MNKCell> alignment : allPossibleAlignmentsGW){
             for(MNKCell cell : alignment){
                 Double currentCellValue = computeValue(cell, alignment, allPossibleAlignmentsGW);
                 if(currentCellValue > optimalCellValue) optimalCellValue = currentCellValue;
+                if(currentCellValue == )
             }
         }
         return optimalCellValue;
