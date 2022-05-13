@@ -41,7 +41,7 @@ public class Test {
     }
 
     /**
-     * Tests whether you get the expected 12 alignments in the set
+     * Tests whether you get the expected 4 alignments in the set
      * @author Leonie Brockmann
      */
     public static void createAllWinningAlignmentsTest() {
@@ -49,20 +49,15 @@ public class Test {
         MNKBoard b = new MNKBoard(3,3,3);
 
         GW player = new GW();
-        b.markCell(1,1);
         b.markCell(1,2);
+        b.markCell(1,1);
         player.setBoard(b);
-        
-        //HashSet<HashSet<MNKCell>> alignments = new HashSet<>();
-
-
-        //alignments.add(new HashSet<>()); 
-
 
         player.createAllWinningAlignments();
         Assert.assertEquals(player.allWinningAlignments.size(), 4);
-
     }
+
+
 
     public static void main(String[] args) {
         createAllWinningAlignmentsTest();

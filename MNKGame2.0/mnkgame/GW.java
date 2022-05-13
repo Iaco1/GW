@@ -209,15 +209,19 @@ public class GW implements MNKPlayer {
      * @author Leonie Brockmann
      */
     public boolean containsMark(int player, HashSet<MNKCell> alignment){
-        MNKCellState opponentState = getOpponent(intToMNKCellState(player));
-
         for (MNKCell cell : alignment) {
-            if (cell.state == opponentState) return true;
+            for (MNKCell markedCell : this.board.getMarkedCells()) {
+                if (cell.i == markedCell.i && cell.j == markedCell.j &&
+                ((player == 0 && markedCell.state.equals(MNKCellState.P2)) || (player == 1 && markedCell.state.equals(MNKCellState.P1)))){
+                    return true;
+                }
+            }
         }
-
         return false;
     }
 
+
+    
     /**
      * This is an Evaluation function.
      * It seeks to predict the likeliness that the state of an open game will result in a win for the player that will play the next move.
@@ -247,8 +251,6 @@ public class GW implements MNKPlayer {
 
     /**
      * creates a set of all possible winning alignments without consideration of other marked cells
-     * @param board 
-     * @return set of all possible winning alignments
      * @author Leonie Brockmann
      */
     public void createAllWinningAlignments() {
@@ -275,7 +277,7 @@ public class GW implements MNKPlayer {
                     alignmentdirections.add(diagonalAlignment1);
                     alignmentdirections.add(diagonalAlignment2);
                     for (HashSet<MNKCell> elem : alignmentdirections) {
-                        if (isInBoard(elem)) {
+                        if (isInBoard(elem) && !containsMark(this.player, elem)) {
                             this.allWinningAlignments.add(elem);
                         }
                     }
