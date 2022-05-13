@@ -158,6 +158,7 @@ public class GW implements MNKPlayer {
 
         for(HashSet<MNKCell> alignment : winningAlignments){
             for(MNKCell currentCell : alignment){
+                //alignment.contains(cell) intersectedAlignments++;
                 if(currentCell.equals(cell)) intersectedAlignments++;
             }
         }
@@ -169,17 +170,12 @@ public class GW implements MNKPlayer {
     //the logic could be better understood with visuals and pen and paper
 
     /**
-     * Discards alignments that are out of bounds and alignments that don't produce a win for the considered player
-     * @param allPossibleAlignments The set of all alignments that contain the marked cells in a given board
-     * @param currentPlayer The Player whose alignments we want to consider
+     * @param cell The cell to evaluate
+     * @return True if it's not an opponents' cell and is in the bounds of the board
      * @author Davide Iacomino
      */
-    public void filter(int currentPlayer){
-        
-        for(HashSet<MNKCell> alignment : this.allWinningAlignments){
-            if(!isInBoard(alignment)) alignment.clear();
-            else if(containsMark(currentPlayer, alignment)) alignment.clear();
-        }
+    public boolean isAlignable(MNKCell pivot, MNKCell cell){
+        return (cell.state != getOpponent(pivot.state) && isInBoard(cell));
     }
     
 
@@ -187,35 +183,13 @@ public class GW implements MNKPlayer {
 
 
     /**
-     * Returns true if the all cells are in the bounds of the board
-     * @param alignment The alignment to be considered
-     * @return true if the all cells are in the bounds of the board
+     * @param cell 
+     * @return true if the cell is in the bounds of the board
      * @author Davide Iacomino
      */
-    public boolean isInBoard(HashSet<MNKCell> alignment){
+    public boolean isInBoard(MNKCell cell){
         Integer m = board.M, n = board.N;
-        for(MNKCell cell : alignment){
-            if(cell.i >= 0 && cell.i < m && cell.j >= 0 && cell.j < n) continue;
-            else return false;
-        }
-        return true;
-    }
-
-    /**
-     * checks if a given alignment contains marks of the other player
-     * @param player current player
-     * @param alignment 
-     * @return true, if the alignment contains mark of the other player
-     * @author Leonie Brockmann
-     */
-    public boolean containsMark(int player, HashSet<MNKCell> alignment){
-        MNKCellState opponentState = getOpponent(intToMNKCellState(player));
-
-        for (MNKCell cell : alignment) {
-            if (cell.state == opponentState) return true;
-        }
-
-        return false;
+        return (cell.i >= 0 && cell.i < m && cell.j >= 0 && cell.j < n);
     }
 
     /**
@@ -229,11 +203,8 @@ public class GW implements MNKPlayer {
     public Double heuristic(MNKBoard b){
         //get all possible alignments for both players
         HashSet<HashSet<MNKCell>> allPossibleAlignmentsGW = new HashSet<>();
-        createAllWinningAlignments();
+        createAllWinningAlignments(intToMNKCellState(player));
         allPossibleAlignmentsGW = this.allWinningAlignments;
-
-        //discard the ones that are out of the board and the ones that don't produce a win for the considered player
-        filter(player);
         
         Double optimalCellValue = -1000.0;
         for(HashSet<MNKCell> alignment : allPossibleAlignmentsGW){
@@ -246,43 +217,139 @@ public class GW implements MNKPlayer {
     }
 
     /**
+     * The board is scanned:
+     * left to right (W to E) for alignments on the HORIZONTAL axis
+     * top to bottom (N to S) for alignments on the VERTICAL
+     * top left to bottom right (NW to SE)
+     * top right to bottom left (NE to SW)
+     * @param axis The axis on which to scan the board for winning alignments
+     * @return The Direction that guides the scanning of the board for winning alignments
+     */
+    Direction getSearchDirection(Axis axis){
+        switch(axis){
+            case HORIZONTAL: { return Direction.E; }
+            case VERTICAL: { return Direction.S; }
+            case NW_SE: { return Direction.SE; }
+            case NE_SW: { return Direction.SW; }
+            default: { return null; }
+        }
+    }
+
+    /**
+     * MNKBorad.cellState() throws an index out of bounds exception for cells outside the board
+     * @param i
+     * @param j
+     * @return the cell in (i,j) or if it's out of the board a free cell in (i,j)
+     */
+    MNKCell getCellAt(int i, int j){
+        MNKCell cell = new MNKCell(i, j, MNKCellState.FREE);
+        if(isInBoard(cell)) cell = new MNKCell(i, j, board.cellState(i, j));
+        return cell;
+    }
+    
+    /**
+     * It can return out of bounds cells and cells that belong to the opponent
+     * @param pivot The cell containing the starting position
+     * @param direction The direction to scan for the adjacent cell
+     * @return The cell that is adjacent to pivot in the given direction
+     */
+    public MNKCell getAdjacentCell(MNKCell pivot, Direction direction){
+        if(pivot == null) return null;
+        
+        int i = pivot.i, j = pivot.j;
+        switch(direction){
+            case N: {i--; break;}
+            case NE: {i--; j++; break; }
+            case E: {j++; break; }
+            case SE: {i++; j++; break; }
+            case S: {i++; break; }
+            case SW: {i++; j--; break; }
+            case W: {j--; break; }
+            case NW: {i--; j--; break; }
+            default: break;
+        }
+
+        return getCellAt(i, j);
+    }
+
+    /**
+     * @param pivot
+     * @param k
+     * @param axis
+     * @return The cell on the axis k-1 cells away from the pivot from which to start scanning for alignments
+     */
+    public MNKCell getStartingCell(MNKCell pivot, int k, Axis axis){
+        int i = pivot.i, j = pivot.j;
+        switch(axis){
+            case HORIZONTAL:{
+                j -= (k-1);
+                break;
+            }
+            case VERTICAL:{
+                i -= (k-1);
+                break;
+            }
+            case NW_SE:{
+                i -= (k-1); j -= (k-1);
+                break;
+            }
+            case NE_SW:{
+                i -= (k-1); j += (k-1);
+                break;
+            }
+            default:{
+                break;
+            }
+        }
+        return getCellAt(i, j); 
+    }
+
+    /**
+     * gets all the alignemnets that can lead to a win for the selected player
+     * assumes the pivot is not a free cell
+     * @param pivot
+     * @param k
+     * @param axis
+     * @return
+     */
+    public HashSet<HashSet<MNKCell>> getAlignment(MNKCell pivot, int k, Axis axis){
+        HashSet<HashSet<MNKCell>> axisAlignments = new HashSet<>();
+        MNKCell startingCell = getStartingCell(pivot, k, axis);
+        Direction searchDirection = getSearchDirection(axis);
+        MNKCell iterator = startingCell;
+
+        for(int alignmentNo=0; alignmentNo < k; alignmentNo++){
+
+            HashSet<MNKCell> alignment = new HashSet<>();
+            for(int alignedCells=0; alignedCells < k; alignedCells++){
+                if(isAlignable(pivot, iterator)) alignment.add(iterator);
+                else break;
+
+                iterator = getAdjacentCell(iterator, searchDirection);
+            }
+            if(alignment.size() == k) axisAlignments.add(alignment);
+            startingCell = getAdjacentCell(startingCell, searchDirection);
+            iterator = startingCell;
+        }
+        return axisAlignments;
+    }
+
+    /**
      * creates a set of all possible winning alignments without consideration of other marked cells
      * @param board 
      * @return set of all possible winning alignments
      * @author Leonie Brockmann
      */
-    public void createAllWinningAlignments() {
-        this.allWinningAlignments = new HashSet<>();
-        for (MNKCell markedCell : this.board.getMarkedCells()) {
-            // consider only the alignments of the current player
-            if ((markedCell.state.equals(MNKCellState.P1) && this.board.currentPlayer() == 0) || (markedCell.state.equals(MNKCellState.P2) && board.currentPlayer() == 1)) {
-            // find all possible alignments that contain markedCell
-                for (int x = 0; x < board.K; x++) {
-                    HashSet<MNKCell> horizontalAlignment = new HashSet<>();
-                    HashSet<MNKCell> verticalAlignment = new HashSet<>();
-                    HashSet<MNKCell> diagonalAlignment1 = new HashSet<>();
-                    HashSet<MNKCell> diagonalAlignment2 = new HashSet<>();
-                    for (int a = x-board.K+1; a < x+1; a++) {
-                        horizontalAlignment.add(new MNKCell(markedCell.i, markedCell.j+a));
-                        verticalAlignment.add(new MNKCell(markedCell.i+a, markedCell.j));
-                        diagonalAlignment1.add(new MNKCell(markedCell.i+a, markedCell.j+a));
-                        diagonalAlignment2.add(new MNKCell(markedCell.i+a, markedCell.j-a));
-                    }
-
-                    HashSet<HashSet<MNKCell>> alignmentdirections = new HashSet<>();
-                    alignmentdirections.add(horizontalAlignment);
-                    alignmentdirections.add(verticalAlignment);
-                    alignmentdirections.add(diagonalAlignment1);
-                    alignmentdirections.add(diagonalAlignment2);
-                    for (HashSet<MNKCell> elem : alignmentdirections) {
-                        if (isInBoard(elem)) {
-                            this.allWinningAlignments.add(elem);
-                        }
-                    }
-                }
+    public void createAllWinningAlignments(MNKCellState playerState) {
+        allWinningAlignments = new HashSet<>();
+        for(MNKCell markedCell : board.getMarkedCells()){
+            if(markedCell.state == playerState){
+                allWinningAlignments.addAll(getAlignment(markedCell, board.K, Axis.HORIZONTAL));
+                allWinningAlignments.addAll(getAlignment(markedCell, board.K, Axis.VERTICAL));
+                allWinningAlignments.addAll(getAlignment(markedCell, board.K, Axis.NW_SE));
+                allWinningAlignments.addAll(getAlignment(markedCell, board.K, Axis.NE_SW));
             }
         }
-
     }
     //considering opponents best moves was not added yet
 

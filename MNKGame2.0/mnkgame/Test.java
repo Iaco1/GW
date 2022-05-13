@@ -25,10 +25,8 @@ public class Test {
         gw.board.markCell(2, 2);
         gw.board.markCell(1, 2);
         
-        gw.createAllWinningAlignments();
+        gw.createAllWinningAlignments(gw.intToMNKCellState(gw.player));
 
-        gw.filter(0);
-        
         for(HashSet<MNKCell> currentAligment : gw.allWinningAlignments){
             for(MNKCell cell : currentAligment){
                 Double value = gw.computeValue(cell, currentAligment, gw.allWinningAlignments);
@@ -40,6 +38,36 @@ public class Test {
 
     }
 
+    public static void computeValueTest774(){
+        GW gw = new GW();
+        gw.board = new MNKBoard(7, 7, 4);
+        gw.board.markCell(2, 2);
+        gw.board.markCell(1, 2);
+        gw.board.markCell(2, 3);
+        gw.board.markCell(2, 1);
+        gw.board.markCell(3, 2);
+
+        gw.createAllWinningAlignments(gw.getOpponent(gw.intToMNKCellState(gw.player)));
+
+        gw.evBoard = new EvaluationBoard(gw.board.M, gw.board.N);
+        for(MNKCell cell : gw.board.getMarkedCells()){
+            gw.evBoard.assignMark(cell);
+        }
+
+        gw.evBoard.printBoard(5);
+
+        for(HashSet<MNKCell> currentAligment : gw.allWinningAlignments){
+            for(MNKCell cell : currentAligment){
+                Double value = gw.computeValue(cell, currentAligment, gw.allWinningAlignments);
+                gw.evBoard.assignValue(value, cell);
+            }
+        }
+
+        gw.evBoard.printBoard(5);
+
+        System.out.println("just don't stop yet");
+
+    }
     /**
      * Tests whether you get the expected 12 alignments in the set
      * @author Leonie Brockmann
@@ -59,13 +87,12 @@ public class Test {
         //alignments.add(new HashSet<>()); 
 
 
-        player.createAllWinningAlignments();
+        player.createAllWinningAlignments(player.intToMNKCellState(player.player));
         Assert.assertEquals(player.allWinningAlignments.size(), 4);
 
     }
 
     public static void main(String[] args) {
-        createAllWinningAlignmentsTest();
-        //computeValueTest();
+        computeValueTest774();
     }
 }
