@@ -260,10 +260,10 @@ public class GW implements MNKPlayer {
                     HashSet<MNKCell> diagonalAlignment1 = new HashSet<>();
                     HashSet<MNKCell> diagonalAlignment2 = new HashSet<>();
                     for (int a = x-board.K+1; a < x+1; a++) {
-                        horizontalAlignment.add(new MNKCell(markedCell.i, markedCell.j+a));
-                        verticalAlignment.add(new MNKCell(markedCell.i+a, markedCell.j));
-                        diagonalAlignment1.add(new MNKCell(markedCell.i+a, markedCell.j+a));
-                        diagonalAlignment2.add(new MNKCell(markedCell.i+a, markedCell.j-a));
+                        horizontalAlignment.add(getCell(markedCell.i, markedCell.j+a));
+                        verticalAlignment.add(getCell(markedCell.i+a, markedCell.j));
+                        diagonalAlignment1.add(getCell(markedCell.i+a, markedCell.j+a));
+                        diagonalAlignment2.add(getCell(markedCell.i+a, markedCell.j-a));
                     }
 
                     HashSet<HashSet<MNKCell>> alignmentdirections = new HashSet<>();
@@ -282,6 +282,23 @@ public class GW implements MNKPlayer {
 
     }
     //considering opponents best moves was not added yet
+
+
+    public MNKCell getCell(int i, int j) {
+        for (MNKCell cell : this.board.getMarkedCells()) {
+            if (cell.i == i && cell.j == j) {
+                return cell;
+            }
+        }
+        for (MNKCell cell : this.board.getFreeCells()) {
+            if (cell.i == i && cell.j == j) {
+                return cell;
+            }
+        }
+        return (new MNKCell(i, j));
+    }
+
+
 
     /**
      * Driver class to select the best cell \in FC
@@ -318,6 +335,7 @@ public class GW implements MNKPlayer {
         for(HashSet<MNKCell> alignment : this.allWinningAlignments){
             for(MNKCell cell : alignment){
                 Double currentCellValue = computeValue(cell, alignment, this.allWinningAlignments);
+                this.evBoard.assignValue(currentCellValue, cell);
                 if(currentCellValue > optimalCellValue) {
                     optimalCellValue = currentCellValue;
                     optimalCell = cell;
