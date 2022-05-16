@@ -232,16 +232,13 @@ public class GW implements MNKPlayer {
      */
     public Double heuristic(MNKBoard b){
         //get all possible alignments for both players
-        HashSet<HashSet<MNKCell>> allPossibleAlignmentsGW = new HashSet<>();
         createAllWinningAlignments();
-        allPossibleAlignmentsGW = this.allWinningAlignments;
         
         Double optimalCellValue = -1000.0;
-        for(HashSet<MNKCell> alignment : allPossibleAlignmentsGW){
+        for(HashSet<MNKCell> alignment : this.allWinningAlignments){
             for(MNKCell cell : alignment){
-                Double currentCellValue = computeValue(cell, alignment, allPossibleAlignmentsGW);
+                Double currentCellValue = computeValue(cell, alignment, this.allWinningAlignments);
                 if(currentCellValue > optimalCellValue) optimalCellValue = currentCellValue;
-                if(currentCellValue == )
             }
         }
         return optimalCellValue;
@@ -300,7 +297,7 @@ public class GW implements MNKPlayer {
         //running alpha beta on all free cells and memorizing the optimal cell to be marked
         for(MNKCell freeCell : FC){
             board.markCell(freeCell.i, freeCell.j);
-            Double currentCellValue = alphaBeta(board, (board.currentPlayer() == player) ? true : false, alpha, beta);
+            Double currentCellValue = alphaBeta(board, (board.currentPlayer() == player) ? true : false, alpha, beta, 1,0);
 
             if(currentCellValue > optimalValue){
                 optimalValue = currentCellValue;
@@ -309,6 +306,25 @@ public class GW implements MNKPlayer {
             board.unmarkCell();
             evBoard.assignValue(currentCellValue, freeCell);
         }
+        return optimalCell;
+    }
+
+    public MNKCell heuristicDriver(MNKCell[] FC, MNKCell[] MC) {
+        MNKCell optimalCell = FC[0];
+
+        createAllWinningAlignments();
+        
+        Double optimalCellValue = -1000.0;
+        for(HashSet<MNKCell> alignment : this.allWinningAlignments){
+            for(MNKCell cell : alignment){
+                Double currentCellValue = computeValue(cell, alignment, this.allWinningAlignments);
+                if(currentCellValue > optimalCellValue) {
+                    optimalCellValue = currentCellValue;
+                    optimalCell = cell;
+                }
+            }
+        }
+
         return optimalCell;
     }
 
@@ -327,7 +343,8 @@ public class GW implements MNKPlayer {
         }
 
         //compute the value of each available move
-        MNKCell optimalCell = alphaBetaDriver(FC, MC);
+        //MNKCell optimalCell = alphaBetaDriver(FC, MC);
+        MNKCell optimalCell = heuristicDriver(FC, MC);
 
         //prints out the board of marked cells and estimates of winning (for debugging)
         evBoard.printBoard(MC.length);
