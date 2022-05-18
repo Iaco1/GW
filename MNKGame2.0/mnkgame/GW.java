@@ -83,14 +83,14 @@ public class GW implements MNKPlayer {
      * @return The value of the current move
      * @author Davide Iacomino
      */
-    public Double alphaBeta(MNKBoard b, boolean max, double alpha, double beta){
+    public Double alphaBeta(MNKBoard b, boolean max, double alpha, double beta, int goalDepth, int currentDepth){
         Double eval;
-        if(b.gameState != MNKGameState.OPEN) return evaluateEndGame(b);
+        if(b.gameState != MNKGameState.OPEN || currentDepth == goalDepth) return heuristic(b);
         else if(max){
             eval = MIN;
             for(MNKCell freeCell : b.getFreeCells()){
                 b.markCell(freeCell.i, freeCell.j);
-                eval = Double.max(eval, alphaBeta(b, false, alpha, beta));
+                eval = Double.max(eval, alphaBeta(b, false, alpha, beta, goalDepth, currentDepth+1));
                 b.unmarkCell();
                 alpha = Double.max(eval, alpha);
                 if(alpha >= beta) break;
@@ -99,7 +99,7 @@ public class GW implements MNKPlayer {
             eval = Double.MAX_VALUE;
             for(MNKCell freeCell : b.getFreeCells()){
                 b.markCell(freeCell.i, freeCell.j);
-                eval = Double.min(eval, alphaBeta(b, true, alpha, beta));
+                eval = Double.min(eval, alphaBeta(b, true, alpha, beta, goalDepth, currentDepth+1));
                 b.unmarkCell();
                 beta = Double.min(eval, beta);
                 if(alpha >= beta) break;
@@ -192,6 +192,8 @@ public class GW implements MNKPlayer {
         return (cell.i >= 0 && cell.i < m && cell.j >= 0 && cell.j < n);
     }
 
+
+    
     /**
      * This is an Evaluation function.
      * It seeks to predict the likeliness that the state of an open game will result in a win for the player that will play the next move.
@@ -336,8 +338,6 @@ public class GW implements MNKPlayer {
 
     /**
      * creates a set of all possible winning alignments without consideration of other marked cells
-     * @param board 
-     * @return set of all possible winning alignments
      * @author Leonie Brockmann
      */
     public void createAllWinningAlignments(MNKCellState playerState) {
@@ -367,7 +367,7 @@ public class GW implements MNKPlayer {
         //running alpha beta on all free cells and memorizing the optimal cell to be marked
         for(MNKCell freeCell : FC){
             board.markCell(freeCell.i, freeCell.j);
-            Double currentCellValue = alphaBeta(board, (board.currentPlayer() == player) ? true : false, alpha, beta);
+            Double currentCellValue = alphaBeta(board, (board.currentPlayer() == player) ? true : false, alpha, beta, 5, 0);
 
             if(currentCellValue > optimalValue){
                 optimalValue = currentCellValue;
