@@ -21,16 +21,25 @@ public class GW implements MNKPlayer {
      * @author Davide Iacomino
      */
     public Double evaluateEndGame(MNKBoard board) {
-        if(Player.won(player.getMNKCellState(), board.gameState)) return 1.0;
-        if(Player.won( Player.getOpponent(player.getMNKCellState()), board.gameState)) return -1.0;
-        else return 0.0;
+        if (Player.won(player.state(), board.gameState))
+            return 1.0;
+        if (Player.won(Player.getOpponent(player.state()), board.gameState))
+            return -1.0;
+        else
+            return 0.0;
     }
 
     public int getVictories(MNKBoard b, MNKCellState state) {
         switch (state) {
-            case P1: { return (b.gameState == MNKGameState.WINP1) ? 1 : 0; }
-            case P2: { return (b.gameState == MNKGameState.WINP2) ? 1 : 0; }
-            default: { return 0; }
+            case P1: {
+                return (b.gameState == MNKGameState.WINP1) ? 1 : 0;
+            }
+            case P2: {
+                return (b.gameState == MNKGameState.WINP2) ? 1 : 0;
+            }
+            default: {
+                return 0;
+            }
         }
     }
 
@@ -56,7 +65,8 @@ public class GW implements MNKPlayer {
                 eval = Double.max(eval, alphaBeta(b, false, alpha, beta, goalDepth, currentDepth + 1));
                 b.unmarkCell();
                 alpha = Double.max(eval, alpha);
-                if (alpha >= beta) break;
+                if (alpha >= beta)
+                    break;
             }
         } else {
             eval = Double.MAX_VALUE;
@@ -65,7 +75,8 @@ public class GW implements MNKPlayer {
                 eval = Double.min(eval, alphaBeta(b, true, alpha, beta, goalDepth, currentDepth + 1));
                 b.unmarkCell();
                 beta = Double.min(eval, beta);
-                if (alpha >= beta) break;
+                if (alpha >= beta)
+                    break;
             }
         }
         return eval;
@@ -83,13 +94,15 @@ public class GW implements MNKPlayer {
         board = new Board(M, N, K);
         timeout = timeout_in_secs;
 
-        if(first) player = new Player(0);
-        else player = new Player(1);
+        if (first)
+            player = new Player(0);
+        else
+            player = new Player(1);
 
         debugBoard = new DebugBoard(M, N);
 
         board.playerThreats = new EvaluatedThreats();
-        board.opponentThreats =  new EvaluatedThreats();
+        board.opponentThreats = new EvaluatedThreats();
     }
 
     /**
@@ -107,7 +120,8 @@ public class GW implements MNKPlayer {
         // marked
         for (MNKCell freeCell : FC) {
             board.markCell(freeCell.i, freeCell.j);
-            Double currentCellValue = alphaBeta(board, (board.currentPlayer() == player.getNum()) ? true : false, alpha, beta, 5,
+            Double currentCellValue = alphaBeta(board, (board.currentPlayer() == player.num()) ? true : false, alpha,
+                    beta, 5,
                     0);
 
             if (currentCellValue > optimalValue) {
@@ -120,50 +134,47 @@ public class GW implements MNKPlayer {
         return optimalCell;
     }
 
-    public int getOpenThreats(Board board, MNKCellState state, int size) {
-
+    //add support to add threats for the enemy
+    //improve diagonal and antidiagonal search 
+    public int getOpenThreatsByAxis(Board board, MNKCellState state, int size, Axis axis) {
         int ot = 0;
-        // Horizontal
-        {
-            for(int i=0; i<board.M; i++) {
-                for (int j=0; j<board.N; j++) {
-                    MNKCell cell = new MNKCell(i, j, board.cellState(i, j));
-                    //find a free cell, marked cell pair
-                    if (cell.state == MNKCellState.FREE && board.getAdjacentCell(cell, Direction.E).state == state) {
-                        MNKCell threatIter = board.getAdjacentCell(cell, Direction.E);
-                        int threatSize = 0;
-                        //count the no. of marked cells after the pair
-                        while (board.contains(threatIter) && threatIter.state == state && threatSize < size) {
-                            threatSize++;
-                            threatIter = board.getAdjacentCell(threatIter, Direction.E);
-                        }
-                        // if the threat is of the desired size and is open 
-                        if (threatSize == size && threatIter.state == MNKCellState.FREE) {
-                            //add to the list of threats and count it
-                            Threat threatInterval = new Threat(cell, threatIter, Axis.HORIZONTAL);
-                            board.playerThreats.add(threatInterval, ThreatType.OPEN, board.K, size);
-                            //board.playerThreats.km1Open.horizontal.add(threatInterval);
-                            ot++;
-                        }
-                        cell = threatIter; //restart search from last searched cell
-                        //test on paper
+        for (int i = 0; i < board.M; i++) {
+            for (int j = 0; j < board.N; j++) {
+                MNKCell cell = new MNKCell(i, j, board.cellState(i, j));
+                // find a free cell, marked cell pair in this axis' search direction
+                Direction searchDirection = Threat.getSearchDirection(axis);
+                if (cell.state == MNKCellState.FREE && board.getAdjacentCell(cell, searchDirection).state == state) {
+                    MNKCell threatIter = board.getAdjacentCell(cell, searchDirection);
+                    int threatSize = 0;
+                    // count the no. of marked cells after the pair
+                    while (board.contains(threatIter) && threatIter.state == state && threatSize < size) {
+                        threatSize++;
+                        threatIter = board.getAdjacentCell(threatIter, searchDirection);
                     }
+                    // if the threat is of the desired size and is open add it to the correct object
+                    if (threatSize == size && threatIter.state == MNKCellState.FREE && board.contains(threatIter)) {
+                        Threat threatInterval = new Threat(cell, threatIter, axis);
+                        
+                        //assign to playerThreats or opponentThreats
+                        if(state == player.state()) board.playerThreats.add(threatInterval, ThreatType.OPEN, board.K, size);
+                        else board.opponentThreats.add(threatInterval, ThreatType.OPEN, board.K, size);
+                        
+                        ot++;
+                    }
+                    cell = threatIter; // restart search from last searched cell
                 }
             }
         }
-        // Vertical
-        {
-        }
-        // NW_SE
-        {
-        }
-        // NE_SW
-        {
-        }
-
         return ot;
     }
 
+    public int getOpenThreats(Board b, MNKCellState state, int size){
+        int ot = 0;
+        for(Axis axis : Axis.values()){
+            ot += getOpenThreatsByAxis(b, state, size, axis); 
+        }
+        return ot;
+    }
     /**
      * Our current best guess for how to win any game
      * 

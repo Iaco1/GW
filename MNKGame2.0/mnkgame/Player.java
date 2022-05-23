@@ -54,8 +54,8 @@ public class Player {
         }
     }
 
-    public int getNum(){ return num; }
-    public MNKCellState getMNKCellState(){ return intToMNKCellState(num); } 
+    public int num(){ return num; }
+    public MNKCellState state(){ return intToMNKCellState(num); } 
     
     public static MNKCellState getOpponent(MNKCellState state) {
         switch (state) {

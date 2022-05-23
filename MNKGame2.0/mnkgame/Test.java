@@ -39,6 +39,7 @@ public class Test {
         gw.board.markCell(1, 1);
         gw.board.markCell(2, 1);
         gw.getOpenThreats(gw.board, MNKCellState.P1, gw.board.K-2);
+        gw.getOpenThreats(gw.board, Player.getOpponent(gw.player.state()), gw.board.K-2);
 
         gw.initPlayer(7, 7, 4, true, 10);
         LinkedList<Position> p1Moves = new LinkedList<>();
@@ -71,6 +72,9 @@ public class Test {
 
         gw.getOpenThreats(gw.board, MNKCellState.P1, 3);
         gw.getOpenThreats(gw.board, MNKCellState.P1, 2);
+
+        gw.getOpenThreats(gw.board, Player.getOpponent(gw.player.state()), 3);
+        gw.getOpenThreats(gw.board, Player.getOpponent(gw.player.state()), 2);
     }
 
     public static void main(String[] args) {
