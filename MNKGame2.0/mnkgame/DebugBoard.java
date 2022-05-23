@@ -1,15 +1,15 @@
 package mnkgame;
 
-public class EvaluationBoard {
+public class DebugBoard {
     protected String[][] valueMap;
 
-    public EvaluationBoard(){}
+    public DebugBoard(){}
 
-    public EvaluationBoard(int m, int n){
+    public DebugBoard(int m, int n){
         valueMap = new String[m][n];
-        for(String[] row : valueMap){
-            for(String element : row){
-                element = "FREE";
+        for(int i=0; i < m; i++){
+            for(int j=0; j < n; j++){
+                valueMap[i][j] = "\t";
             }
         }
     }
