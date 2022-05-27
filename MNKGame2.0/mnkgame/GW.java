@@ -13,6 +13,46 @@ public class GW implements MNKPlayer {
     final Double MIN = -1000000000.0;
     protected DebugBoard debugBoard;
 
+
+
+    public MNKCell iterativeDeepening(int itDepthMax) {
+
+        double initialTime = System.currentTimeMillis(); // in ms
+
+        int itDepth = 0;
+        MNKCell optimalCell = this.board.getFreeCells()[0];
+
+        while((System.currentTimeMillis() - initialTime) / 1000.0 < timeout-1) { // until time limit is reached
+            optimalCell = depthLimitedSearch(this.board, itDepth, itDepthMax);
+            itDepth += 1;
+            //System.out.println(itDepth);
+            //System.out.println((System.currentTimeMillis() - initialTime)/1000.0);
+        }
+
+        return optimalCell;
+    }
+
+
+
+    public MNKCell depthLimitedSearch(MNKBoard b, int depth, int itDepthMax) {
+        MNKCell optimalCell = b.getFreeCells()[0];
+
+        for(MNKCell freeCell : b.getFreeCells()) {
+            if (depth < itDepthMax) {
+                b.markCell(freeCell.i, freeCell.j);
+                if (b.gameState.equals(MNKGameState.OPEN)) {
+                    optimalCell = depthLimitedSearch(b, depth+1, itDepthMax);
+                }
+                b.unmarkCell();
+            } else {
+                return alphaBetaDriver(b.getFreeCells(), b.getMarkedCells());
+            }
+        }
+
+        return optimalCell;
+    }
+
+
     /**
      * placeholder evaluation function for the end-game
      * 
@@ -191,7 +231,8 @@ public class GW implements MNKPlayer {
         }
 
         // compute the value of each available move
-        MNKCell optimalCell = alphaBetaDriver(FC, MC);
+        //MNKCell optimalCell = alphaBetaDriver(FC, MC);
+        MNKCell optimalCell = iterativeDeepening(1);
 
         // prints out the board of marked cells and estimates of winning (for debugging)
         debugBoard.printBoard(MC.length);

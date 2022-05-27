@@ -44,7 +44,16 @@ public class DebugBoard {
         for(String[] row : valueMap){
             for(String element : row){
                 if(element == null) System.out.print("FREE\t");
-                else System.out.print(element.substring(0, 4) + "\t");
+                else {
+                    if (element.length() > 4) {
+                        System.out.print(element.substring(0, 4) + "\t");
+                    } else {
+                        System.out.print(element + "\t");
+                    }
+
+
+
+                }
             }
             System.out.println();
         }
