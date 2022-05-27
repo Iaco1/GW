@@ -101,8 +101,8 @@ public class GW implements MNKPlayer {
 
         debugBoard = new DebugBoard(M, N);
 
-        board.playerThreats = new EvaluatedThreats();
-        board.opponentThreats = new EvaluatedThreats();
+        board.setEvaluatedThreats(MNKCellState.P1, new EvaluatedThreats());
+        board.setEvaluatedThreats(MNKCellState.P2, new EvaluatedThreats());
     }
 
     /**
@@ -151,17 +151,15 @@ public class GW implements MNKPlayer {
                         threatSize++;
                         threatIter = board.getAdjacentCell(threatIter, searchDirection);
                     }
-                    // if the threat is of the desired size and is open add it to the correct object
+                    // if the threat is of the desired size and is open add it to the correct container object
                     if (threatSize == size && threatIter.state == MNKCellState.FREE && board.contains(threatIter)) {
-                        Threat threatInterval = new Threat(cell, threatIter, axis);
+                        Threat threatInterval = new Threat(cell, threatIter, axis, state);
                         
                         //assign to playerThreats or opponentThreats
-                        if(state == player.state()) board.playerThreats.add(threatInterval, ThreatType.OPEN, board.K, size);
-                        else board.opponentThreats.add(threatInterval, ThreatType.OPEN, board.K, size);
+                        addThreat(threatInterval, ThreatType.OPEN, size);
                         
                         ot++;
                     }
-                    cell = threatIter; // restart search from last searched cell
                 }
             }
         }
@@ -174,6 +172,61 @@ public class GW implements MNKPlayer {
             ot += getOpenThreatsByAxis(b, state, size, axis); 
         }
         return ot;
+    }
+    
+
+    public void addThreat(Threat t, ThreatType tt, int size){
+        //check if threat is redundant
+        if(board.isRedundant(t, tt, size)) return;
+
+        board.getEvaluatedThreats(t.player).add(t, tt, board.K, size);
+    }
+
+    /**
+     * Adds the k-1 half open threats to evaluatedThreats for the selected player
+     * @return
+     */
+    public int getHalfOpenThreats(Board b, MNKCellState state){
+        int hot = 0; //it's the no. of Half Open Threats, don't get me wrong
+        for(int i=0; i < b.M; i++){
+            for(int j=0; j < b.N; j++){
+                MNKCell cell = b.getCellAt(i, j);
+                Axis axis = Axis.HORIZONTAL;
+                Direction searchDirection = Threat.getSearchDirection(axis);
+                //start looking for k-2 cells on this axis
+                if(cell.state == state){
+                    MNKCell leftExtremity = b.getAdjacentCell(cell, Threat.getOppositeDirection(searchDirection));
+                    int alignedCells = 0, jumps = 0;
+                    //keep searching until you have a k-1 threat or you find an opponent's mark or you go out of bounds
+                    while(alignedCells < b.K-1 && jumps < 2 && cell.state != Player.getOpponent(state) && b.contains(cell)){
+                        if(cell.state == MNKCellState.FREE) jumps++;
+                        if(cell.state == state) alignedCells++;
+
+                        cell = b.getAdjacentCell(cell, searchDirection);
+                    }
+
+                    boolean zeroExtMarkedByPlayer = leftExtremity.state != state && cell.state != state;
+                    boolean exactlyOneExtIsFreeAndInBounds = (leftExtremity.state == MNKCellState.FREE && b.contains(leftExtremity)) ^ (cell.state == MNKCellState.FREE && b.contains(cell));
+                    boolean leqOneExtMarkedByPlayer = !(leftExtremity.state == state && cell.state == state);
+                    if(alignedCells != b.K-1 ) continue;
+                    else if(jumps > 1) continue;
+                    else if(
+                    (jumps == 1 && leqOneExtMarkedByPlayer) // has k-1 aligned cells, 1 jump and extremities are not of our MNKCellState
+                    || //or has k-1 aligned cells and only one of the extremities is a free cell while the other one is not our cell
+                    (jumps == 0 && exactlyOneExtIsFreeAndInBounds && zeroExtMarkedByPlayer)
+                    ){ 
+                        Threat threatInterval = new Threat(leftExtremity, cell, axis, state);
+
+                        //assign to playerThreats or opponentThreats
+                        addThreat(threatInterval, ThreatType.HALF_OPEN, b.K-1);
+
+                        hot++;
+                    }
+                }
+
+            }
+        }
+        return hot;
     }
     /**
      * Our current best guess for how to win any game

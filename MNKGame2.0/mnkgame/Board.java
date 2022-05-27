@@ -4,8 +4,8 @@ package mnkgame;
  * Handy extension of MNKBoard that also contains the present threats on the board
  */
 public class Board extends MNKBoard{
-    public EvaluatedThreats playerThreats;
-    public EvaluatedThreats opponentThreats;
+    public EvaluatedThreats p1Threats;
+    public EvaluatedThreats p2Threats;
 
     public Board(int m, int n, int k){
         super(m,n,k);
@@ -66,7 +66,27 @@ public class Board extends MNKBoard{
         return getCellAt(i, j);
     }
 
-    public boolean containsRedundantThreat(Threat container, Threat contained){
+    /**
+     * no checks whatsoever on the threats
+     * @param t1
+     * @param t2
+     * @return true if the threats have at least one adjacent extremity
+     */
+    public boolean differByOne(Threat t1, Threat t2){
+        Direction searchDirection = Threat.getSearchDirection(t1.axis);
+        Direction oppDirection = Threat.getOppositeDirection(searchDirection);
+
+        //if t1's left extremity is adjacent to t2's left extremity
+        // or t1's right extremity is adjacent to t2' right extremity
+        if(t1.left.equals(getAdjacentCell(t2.left, searchDirection)) || t1.left.equals(getAdjacentCell(t2.left, oppDirection))
+        || t1.right.equals(getAdjacentCell(t2.right, searchDirection)) || t1.right.equals(getAdjacentCell(t2.right, oppDirection))){
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean containerContainsContained(Threat container, Threat contained){
         if(container.axis == contained.axis){
             switch(contained.axis){
                 case HORIZONTAL:{
@@ -92,5 +112,36 @@ public class Board extends MNKBoard{
                 default: return false;
             }
         }else return false;
+    }
+
+    public EvaluatedThreats getEvaluatedThreats(MNKCellState state){
+        if(state == MNKCellState.P1) return p1Threats;
+        else if(state == MNKCellState.P2) return p2Threats;
+        else return null;
+    }
+
+    public void setEvaluatedThreats(MNKCellState state, EvaluatedThreats evTh){
+        switch(state){
+            case P1: {
+                p1Threats = evTh;
+                break;
+            }
+            case P2:{
+                p2Threats = evTh;
+                break;
+            }
+            default: break;
+        }
+    }
+    public boolean isRedundant(Threat t, ThreatType tt, int size){
+        //check whether the threat is redundant compared to the ones you already have
+        
+        // it 's redundant if it's either contained in another threat 
+        // or if one or both of its extremities differ by one unit in either two of the threat's axis search direction
+        for(Threat axisThreat : getEvaluatedThreats(t.player).getThreatsByType(tt, K, size).getHashSet(t.axis)){
+            if (containerContainsContained(axisThreat, t) || differByOne(axisThreat, t)) return true;
+        }
+        return false;
+
     }
 }

@@ -52,4 +52,22 @@ public class EvaluatedThreats {
             default: return;
         }
     }
+
+    public ThreatsByAxis getThreatsByType(ThreatType tt, int k, int size){
+        switch(tt){
+            case OPEN:{
+                if(k - size == 1) return km1Open;
+                else if(k - size == 2) return km2Open;
+                break;
+            }
+            case HALF_OPEN:{
+                if(k-size == 1) return km1HalfOpen;
+                break;
+            }
+            default: break;
+        }
+        return null;
+    }
+
+    
 }

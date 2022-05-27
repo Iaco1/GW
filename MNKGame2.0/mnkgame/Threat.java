@@ -10,7 +10,8 @@ package mnkgame;
 public class Threat{
     public MNKCell left;
     public MNKCell right;
-    Axis axis;
+    public Axis axis;
+    public MNKCellState player;
 
     public Threat(){}
 
@@ -21,7 +22,7 @@ public class Threat{
      * @param b the other extremity of the Threat
      * @param axis The axis on which the threat was found
      */
-    public Threat(MNKCell a, MNKCell b, Axis axis) {
+    public Threat(MNKCell a, MNKCell b, Axis axis, MNKCellState player) {
         this.axis = axis;
         switch(axis){
             case HORIZONTAL:{
@@ -49,6 +50,7 @@ public class Threat{
                 right = b;
             }
         }
+        this.player = player;
     }
 
     /**

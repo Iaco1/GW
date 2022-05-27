@@ -32,7 +32,7 @@ public class Test {
         }
     }
 
-    public static void horizontalOpenThreatsTest(){
+    public static void openThreatsTest(){
         GW gw = new GW();
         gw.initPlayer(3, 3, 3, true, 10);
         gw.board.markCell(0, 1);
@@ -77,7 +77,44 @@ public class Test {
         gw.getOpenThreats(gw.board, Player.getOpponent(gw.player.state()), 2);
     }
 
+    public static void horizontalHalfOpenThreatsTest(){
+        GW gw = new GW();
+        gw.initPlayer(7, 7, 4, true, 10);
+        LinkedList<Position> p1Moves = new LinkedList<>();
+        p1Moves.add(new Position(0,1));
+        p1Moves.add(new Position(0,2));
+        p1Moves.add(new Position(0,3));
+        p1Moves.add(new Position(1,0));
+        p1Moves.add(new Position(1,1));
+        p1Moves.add(new Position(1,2));
+        p1Moves.add(new Position(3,1));
+        p1Moves.add(new Position(3,2));
+        p1Moves.add(new Position(3,4));
+        p1Moves.add(new Position(4,2));
+        p1Moves.add(new Position(6,2));
+        p1Moves.add(new Position(6,4));
+
+        LinkedList<Position> p2Moves = new LinkedList<>();
+        p2Moves.add(new Position(1,3));
+        p2Moves.add(new Position(1,4));
+        p2Moves.add(new Position(1,5));
+        p2Moves.add(new Position(2,0));
+        p2Moves.add(new Position(2,2));
+        p2Moves.add(new Position(2,3));
+        p2Moves.add(new Position(2,5));
+        p2Moves.add(new Position(2,6));
+        p2Moves.add(new Position(3,6));
+        p2Moves.add(new Position(5,4));
+        p2Moves.add(new Position(5,6));
+        p2Moves.add(new Position(6,3));
+
+        scenario(gw.board, p1Moves, p2Moves);
+
+        gw.getHalfOpenThreats(gw.board, gw.player.state());
+        gw.getHalfOpenThreats(gw.board, Player.getOpponent(gw.player.state()));
+    }
+
     public static void main(String[] args) {
-       horizontalOpenThreatsTest();
+       horizontalHalfOpenThreatsTest();
     }
 }

@@ -34,5 +34,5 @@ public class ThreatsByAxis {
             default: return null;
         }
     }
-    
+
 }
