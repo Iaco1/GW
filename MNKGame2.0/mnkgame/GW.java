@@ -186,12 +186,11 @@ public class GW implements MNKPlayer {
      * Adds the k-1 half open threats to evaluatedThreats for the selected player
      * @return
      */
-    public int getHalfOpenThreats(Board b, MNKCellState state){
+    public int getHalfOpenThreatsByAxis(Board b, MNKCellState state, Axis axis){
         int hot = 0; //it's the no. of Half Open Threats, don't get me wrong
         for(int i=0; i < b.M; i++){
             for(int j=0; j < b.N; j++){
                 MNKCell cell = b.getCellAt(i, j);
-                Axis axis = Axis.HORIZONTAL;
                 Direction searchDirection = Threat.getSearchDirection(axis);
                 //start looking for k-2 cells on this axis
                 if(cell.state == state){
@@ -225,6 +224,14 @@ public class GW implements MNKPlayer {
                 }
 
             }
+        }
+        return hot;
+    }
+    
+    public int getHalfOpenThreats(Board b, MNKCellState state){
+        int hot=0;
+        for(Axis axis : Axis.values()){
+            hot += getHalfOpenThreatsByAxis(b, state, axis);
         }
         return hot;
     }

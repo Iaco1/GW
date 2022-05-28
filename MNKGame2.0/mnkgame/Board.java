@@ -94,7 +94,7 @@ public class Board extends MNKBoard{
                     else return false;
                 }
                 case VERTICAL:{
-                    if(container.left.i <= contained.left.i && container.right.i >= contained.right.j) return true;
+                    if(container.left.i <= contained.left.i && container.right.i >= contained.right.i) return true;
                     else return false;
                 }
                 case NE_SW:

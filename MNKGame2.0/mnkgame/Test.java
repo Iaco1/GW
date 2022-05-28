@@ -77,7 +77,7 @@ public class Test {
         gw.getOpenThreats(gw.board, Player.getOpponent(gw.player.state()), 2);
     }
 
-    public static void horizontalHalfOpenThreatsTest(){
+    public static void halfOpenThreatsTest(){
         GW gw = new GW();
         gw.initPlayer(7, 7, 4, true, 10);
         LinkedList<Position> p1Moves = new LinkedList<>();
@@ -115,6 +115,6 @@ public class Test {
     }
 
     public static void main(String[] args) {
-       horizontalHalfOpenThreatsTest();
+       halfOpenThreatsTest();
     }
 }
