@@ -10,8 +10,6 @@ public class GW implements MNKPlayer {
     protected Board board;
     protected int timeout;
     Player player;
-    final Double MIN = -1000000000.0;
-    protected DebugBoard debugBoard;
 
     /**
      * placeholder evaluation function for the end-game
@@ -54,27 +52,27 @@ public class GW implements MNKPlayer {
      * @return The value of the current move
      * @author Davide Iacomino
      */
-    public Double alphaBeta(MNKBoard b, boolean max, double alpha, double beta, int goalDepth, int currentDepth) {
-        Double eval;
+    public Integer alphaBeta(MNKBoard b, boolean max, Integer alpha, Integer beta, int goalDepth, int currentDepth) {
+        Integer eval;
         if (b.gameState != MNKGameState.OPEN || currentDepth == goalDepth)
-            return evaluateEndGame(board);
+            return evaluate(board, player.state());
         else if (max) {
-            eval = MIN;
+            eval = Integer.MIN_VALUE;
             for (MNKCell freeCell : b.getFreeCells()) {
                 b.markCell(freeCell.i, freeCell.j);
-                eval = Double.max(eval, alphaBeta(b, false, alpha, beta, goalDepth, currentDepth + 1));
+                eval = Integer.max(eval, alphaBeta(b, false, alpha, beta, goalDepth, currentDepth + 1));
                 b.unmarkCell();
-                alpha = Double.max(eval, alpha);
+                alpha = Integer.max(eval, alpha);
                 if (alpha >= beta)
                     break;
             }
         } else {
-            eval = Double.MAX_VALUE;
+            eval = Integer.MAX_VALUE;
             for (MNKCell freeCell : b.getFreeCells()) {
                 b.markCell(freeCell.i, freeCell.j);
-                eval = Double.min(eval, alphaBeta(b, true, alpha, beta, goalDepth, currentDepth + 1));
+                eval = Integer.min(eval, alphaBeta(b, true, alpha, beta, goalDepth, currentDepth + 1));
                 b.unmarkCell();
-                beta = Double.min(eval, beta);
+                beta = Integer.min(eval, beta);
                 if (alpha >= beta)
                     break;
             }
@@ -86,7 +84,7 @@ public class GW implements MNKPlayer {
      * @param M
      * @param N
      * @param K
-     * @param first           True if GW is P1
+     * @param first True if GW is P1
      * @param timeout_in_secs
      * @author Davide Iacomino
      */
@@ -99,8 +97,6 @@ public class GW implements MNKPlayer {
         else
             player = new Player(1);
 
-        debugBoard = new DebugBoard(M, N);
-
         board.setEvaluatedThreats(MNKCellState.P1, new EvaluatedThreats());
         board.setEvaluatedThreats(MNKCellState.P2, new EvaluatedThreats());
     }
@@ -110,17 +106,17 @@ public class GW implements MNKPlayer {
      */
     public MNKCell alphaBetaDriver(MNKCell[] FC, MNKCell[] MC) {
         // optimal cell intitalization
-        Double optimalValue = MIN;
+        Integer optimalValue = Integer.MIN_VALUE;
         MNKCell optimalCell = FC[0];
 
         // alpha-beta value intialization
-        Double alpha = -1.0, beta = 1.0;
+        Integer alpha = Integer.MIN_VALUE, beta = Integer.MAX_VALUE;
 
         // running alpha beta on all free cells and memorizing the optimal cell to be
         // marked
         for (MNKCell freeCell : FC) {
             board.markCell(freeCell.i, freeCell.j);
-            Double currentCellValue = alphaBeta(board, (board.currentPlayer() == player.num()) ? true : false, alpha,
+            Integer currentCellValue = alphaBeta(board, player.num() == board.currentPlayer(), alpha,
                     beta, 5,
                     0);
 
@@ -129,7 +125,6 @@ public class GW implements MNKPlayer {
                 optimalCell = freeCell;
             }
             board.unmarkCell();
-            debugBoard.assignValue(currentCellValue, freeCell);
         }
         return optimalCell;
     }
@@ -235,6 +230,30 @@ public class GW implements MNKPlayer {
         }
         return hot;
     }
+    
+    public int evaluate(Board b, MNKCellState state){
+        final int victoryParam = 1000000;
+        
+        final int km1otStateParam = 250;
+        final int km1hotStateParam = 80;
+        final int km2otStateParam = 100;
+
+        final int km1otOpponentParam = 5020;
+        final int km1hotOpponentParam = 2000;
+        final int km2otOpponentParam = 1300;
+        
+        int stateVictories = getVictories(b, state);
+        int opponentVictories = getVictories(b, Player.getOpponent(state));
+
+        if(stateVictories != opponentVictories) return Integer.max(stateVictories, opponentVictories)*victoryParam;
+
+        MNKCellState opponent = Player.getOpponent(state);
+        return 
+        ( getOpenThreats(b, state, b.K-1)*km1otStateParam + getHalfOpenThreats(b, state)*km1hotStateParam + getOpenThreats(b, state, b.K-2)*km2otStateParam )
+        - ( getOpenThreats(b, opponent, b.K-1)*km1otOpponentParam + getHalfOpenThreats(b, opponent)*km1hotOpponentParam + getOpenThreats(b, opponent, b.K-2)*km2otOpponentParam);
+
+    }
+    
     /**
      * Our current best guess for how to win any game
      * 
@@ -244,17 +263,11 @@ public class GW implements MNKPlayer {
      */
     public MNKCell selectCell(MNKCell[] FC, MNKCell[] MC) {
         // mark last played cell by the adversary
-        // and assigns a mark to the previously marked cells in evBoard
-        if (MC.length > 0) {
-            board.markCell(MC[MC.length - 1].i, MC[MC.length - 1].j);
-            debugBoard.assignMark(MC[MC.length - 1]);
-        }
+        if (MC.length > 0) board.markCell(MC[MC.length - 1].i, MC[MC.length - 1].j);
 
         // compute the value of each available move
         MNKCell optimalCell = alphaBetaDriver(FC, MC);
 
-        // prints out the board of marked cells and estimates of winning (for debugging)
-        debugBoard.printBoard(MC.length);
         board.markCell(optimalCell.i, optimalCell.j);
 
         return optimalCell;
