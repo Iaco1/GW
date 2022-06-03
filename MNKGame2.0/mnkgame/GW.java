@@ -27,20 +27,6 @@ public class GW implements MNKPlayer {
             return 0.0;
     }
 
-    public int getVictories(MNKBoard b, MNKCellState state) {
-        switch (state) {
-            case P1: {
-                return (b.gameState == MNKGameState.WINP1) ? 1 : 0;
-            }
-            case P2: {
-                return (b.gameState == MNKGameState.WINP2) ? 1 : 0;
-            }
-            default: {
-                return 0;
-            }
-        }
-    }
-
     /**
      * An implementation of the alpha-beta pruning algorithm for an mnk-game.
      * It calculates the likeliness of winning based on the state of the board.
@@ -84,7 +70,7 @@ public class GW implements MNKPlayer {
      * @param M
      * @param N
      * @param K
-     * @param first True if GW is P1
+     * @param first           True if GW is P1
      * @param timeout_in_secs
      * @author Davide Iacomino
      */
@@ -96,9 +82,6 @@ public class GW implements MNKPlayer {
             player = new Player(0);
         else
             player = new Player(1);
-
-        board.setEvaluatedThreats(MNKCellState.P1, new EvaluatedThreats());
-        board.setEvaluatedThreats(MNKCellState.P2, new EvaluatedThreats());
     }
 
     /**
@@ -129,111 +112,10 @@ public class GW implements MNKPlayer {
         return optimalCell;
     }
 
-    //add support to add threats for the enemy
-    //improve diagonal and antidiagonal search 
-    public int getOpenThreatsByAxis(Board board, MNKCellState state, int size, Axis axis) {
-        int ot = 0;
-        for (int i = 0; i < board.M; i++) {
-            for (int j = 0; j < board.N; j++) {
-                MNKCell cell = new MNKCell(i, j, board.cellState(i, j));
-                // find a free cell, marked cell pair in this axis' search direction
-                Direction searchDirection = Threat.getSearchDirection(axis);
-                if (cell.state == MNKCellState.FREE && board.getAdjacentCell(cell, searchDirection).state == state) {
-                    MNKCell threatIter = board.getAdjacentCell(cell, searchDirection);
-                    int threatSize = 0;
-                    // count the no. of marked cells after the pair
-                    while (board.contains(threatIter) && threatIter.state == state && threatSize < size) {
-                        threatSize++;
-                        threatIter = board.getAdjacentCell(threatIter, searchDirection);
-                    }
-                    // if the threat is of the desired size and is open add it to the correct container object
-                    if (threatSize == size && threatIter.state == MNKCellState.FREE && board.contains(threatIter)) {
-                        Threat threatInterval = new Threat(cell, threatIter, axis, state);
-                        
-                        //assign to playerThreats or opponentThreats
-                        addThreat(threatInterval, ThreatType.OPEN, size);
-                        
-                        ot++;
-                    }
-                }
-            }
-        }
-        return ot;
-    }
-
-    public int getOpenThreats(Board b, MNKCellState state, int size){
-        int ot = 0;
-        for(Axis axis : Axis.values()){
-            ot += getOpenThreatsByAxis(b, state, size, axis); 
-        }
-        return ot;
-    }
-    
-
-    public void addThreat(Threat t, ThreatType tt, int size){
-        //check if threat is redundant
-        if(board.isRedundant(t, tt, size)) return;
-
-        board.getEvaluatedThreats(t.player).add(t, tt, board.K, size);
-    }
-
-    /**
-     * Adds the k-1 half open threats to evaluatedThreats for the selected player
-     * @return
-     */
-    public int getHalfOpenThreatsByAxis(Board b, MNKCellState state, Axis axis){
-        int hot = 0; //it's the no. of Half Open Threats, don't get me wrong
-        for(int i=0; i < b.M; i++){
-            for(int j=0; j < b.N; j++){
-                MNKCell cell = b.getCellAt(i, j);
-                Direction searchDirection = Threat.getSearchDirection(axis);
-                //start looking for k-2 cells on this axis
-                if(cell.state == state){
-                    MNKCell leftExtremity = b.getAdjacentCell(cell, Threat.getOppositeDirection(searchDirection));
-                    int alignedCells = 0, jumps = 0;
-                    //keep searching until you have a k-1 threat or you find an opponent's mark or you go out of bounds
-                    while(alignedCells < b.K-1 && jumps < 2 && cell.state != Player.getOpponent(state) && b.contains(cell)){
-                        if(cell.state == MNKCellState.FREE) jumps++;
-                        if(cell.state == state) alignedCells++;
-
-                        cell = b.getAdjacentCell(cell, searchDirection);
-                    }
-
-                    boolean zeroExtMarkedByPlayer = leftExtremity.state != state && cell.state != state;
-                    boolean exactlyOneExtIsFreeAndInBounds = (leftExtremity.state == MNKCellState.FREE && b.contains(leftExtremity)) ^ (cell.state == MNKCellState.FREE && b.contains(cell));
-                    boolean leqOneExtMarkedByPlayer = !(leftExtremity.state == state && cell.state == state);
-                    if(alignedCells != b.K-1 ) continue;
-                    else if(jumps > 1) continue;
-                    else if(
-                    (jumps == 1 && leqOneExtMarkedByPlayer) // has k-1 aligned cells, 1 jump and extremities are not of our MNKCellState
-                    || //or has k-1 aligned cells and only one of the extremities is a free cell while the other one is not our cell
-                    (jumps == 0 && exactlyOneExtIsFreeAndInBounds && zeroExtMarkedByPlayer)
-                    ){ 
-                        Threat threatInterval = new Threat(leftExtremity, cell, axis, state);
-
-                        //assign to playerThreats or opponentThreats
-                        addThreat(threatInterval, ThreatType.HALF_OPEN, b.K-1);
-
-                        hot++;
-                    }
-                }
-
-            }
-        }
-        return hot;
-    }
-    
-    public int getHalfOpenThreats(Board b, MNKCellState state){
-        int hot=0;
-        for(Axis axis : Axis.values()){
-            hot += getHalfOpenThreatsByAxis(b, state, axis);
-        }
-        return hot;
-    }
-    
-    public int evaluate(Board b, MNKCellState state){
+    //evaluate will now always expect you to have evaluated the threats in all previous turns except the last one
+    public int evaluate(Board b, MNKCellState state) {
         final int victoryParam = 1000000;
-        
+
         final int km1otStateParam = 250;
         final int km1hotStateParam = 80;
         final int km2otStateParam = 100;
@@ -241,19 +123,32 @@ public class GW implements MNKPlayer {
         final int km1otOpponentParam = 5020;
         final int km1hotOpponentParam = 2000;
         final int km2otOpponentParam = 1300;
-        
-        int stateVictories = getVictories(b, state);
-        int opponentVictories = getVictories(b, Player.getOpponent(state));
 
-        if(stateVictories != opponentVictories) return Integer.max(stateVictories, opponentVictories)*victoryParam;
+        int stateVictories = b.getVictories(state);
+        int opponentVictories = b.getVictories(Player.getOpponent(state));
+
+        if (stateVictories != opponentVictories)
+            return Integer.max(stateVictories, opponentVictories) * victoryParam;
 
         MNKCellState opponent = Player.getOpponent(state);
+        b.updateThreats(1);
+
+        //adjusting the evalutation formula
+        int[] playerThreatSize = b.getPlayerThreats(state).getThreatSize(b.K);
+        int[] opponentThreatSize = b.getPlayerThreats(opponent).getThreatSize(b.K);
+        
         return 
-        ( getOpenThreats(b, state, b.K-1)*km1otStateParam + getHalfOpenThreats(b, state)*km1hotStateParam + getOpenThreats(b, state, b.K-2)*km2otStateParam )
-        - ( getOpenThreats(b, opponent, b.K-1)*km1otOpponentParam + getHalfOpenThreats(b, opponent)*km1hotOpponentParam + getOpenThreats(b, opponent, b.K-2)*km2otOpponentParam);
+        (playerThreatSize[0] * km1otStateParam
+        + playerThreatSize[1] * km1hotStateParam
+        + playerThreatSize[2] * km2otStateParam)
+        
+        - 
+        (opponentThreatSize[0] * km1otOpponentParam
+        + opponentThreatSize[1] * km1hotOpponentParam
+        + opponentThreatSize[2] * km2otOpponentParam);
 
     }
-    
+
     /**
      * Our current best guess for how to win any game
      * 
@@ -263,7 +158,8 @@ public class GW implements MNKPlayer {
      */
     public MNKCell selectCell(MNKCell[] FC, MNKCell[] MC) {
         // mark last played cell by the adversary
-        if (MC.length > 0) board.markCell(MC[MC.length - 1].i, MC[MC.length - 1].j);
+        if (MC.length > 0)
+            board.markCell(MC[MC.length - 1].i, MC[MC.length - 1].j);
 
         // compute the value of each available move
         MNKCell optimalCell = alphaBetaDriver(FC, MC);

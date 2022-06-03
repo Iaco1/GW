@@ -1,7 +1,7 @@
 package mnkgame;
 
 /**
- * Let k be the number of symbols to align to win the game and i a number \in [1, k-1]
+ * Let k (> 1) be the number of symbols to align to win the game and i a number \in [1, k-1]
  * 1. An Open threat is: k-i consecutively aligned symbols with two free extremities
  * 
  * 2. An Half Open threat is either:

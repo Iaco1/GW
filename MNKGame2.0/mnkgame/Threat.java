@@ -12,18 +12,35 @@ public class Threat{
     public MNKCell right;
     public Axis axis;
     public MNKCellState player;
+    public int size;
+    public ThreatType tt;
+    public int jumps;
 
-    public Threat(){}
+    public Threat(){
+        left = new MNKCell(0,0);
+        right = left;
+        axis = Axis.HORIZONTAL;
+        player = MNKCellState.P1;
+        size = 0;
+        tt = ThreatType.OPEN;
+        jumps = 0;
+    }
 
     /**
      * no check on whether positions are in the board
      * no check on whether positions are actually on the same axis
+     * no check on threat type
+     * no check on size
+     * no check on jumps
      * @param a One extremity of the Threat
      * @param b the other extremity of the Threat
      * @param axis The axis on which the threat was found
      */
-    public Threat(MNKCell a, MNKCell b, Axis axis, MNKCellState player) {
+    public Threat(MNKCell a, MNKCell b, Axis axis, MNKCellState player, int size, ThreatType tt, int jumps) {
         this.axis = axis;
+        this.size = size;
+        this.tt = tt;
+        this.jumps = jumps;
         switch(axis){
             case HORIZONTAL:{
                 if(a.j <= b.j) { left = a; right = b; }
@@ -35,12 +52,12 @@ public class Threat{
                 else { left = b; right = a; }
                 break;
             }
-            case NW_SE: {
+            case DIAGONAL: {
                 if(a.i <= b.i && a.j <= b.j){ left = a; right = b; }
                 else { left = b; right = a; }
                 break;
             }
-            case NE_SW: {
+            case ANTIDIAGONAL: {
                 if(a.i <= b.i && a.j >= b.j){ left = a; right = b; }
                 else { left = b; right = a; }
                 break;
@@ -68,8 +85,8 @@ public class Threat{
         switch (axis) {
             case HORIZONTAL: { return Direction.E; }
             case VERTICAL: { return Direction.S; }
-            case NW_SE: { return Direction.SE; }
-            case NE_SW: { return Direction.SW; }
+            case DIAGONAL: { return Direction.SE; }
+            case ANTIDIAGONAL: { return Direction.SW; }
             default: { return null; }
         }
     }
@@ -88,4 +105,11 @@ public class Threat{
         }
     }
 
+    public boolean contains(MNKCell cell){
+        int x1 = left.j, x2 = right.j, y1 = left.i, y2 = right.i, x = cell.j, y = cell.i;
+        int lbi = Math.min(left.i, right.i), hbi = Math.max(left.i, right.i);
+        int lbj = Math.min(left.j, right.j), hbj = Math.max(left.j, right.j);
+        return (x - x1)*(y2 - y1) == (y - y1)*(x2 - x1) 
+        && (y >= lbi && y <= hbi) && (x >= lbj && x <= hbj);
+    }
 }

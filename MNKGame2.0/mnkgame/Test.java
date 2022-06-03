@@ -16,7 +16,7 @@ public class Test {
      * @param p1Moves
      * @param p2Moves
      */
-    public static void scenario(MNKBoard b, LinkedList<Position> p1Moves, LinkedList<Position> p2Moves){
+    public static void scenario(Board b, LinkedList<Position> p1Moves, LinkedList<Position> p2Moves){
         if(Math.abs(p1Moves.size() - p2Moves.size()) > 1) return;
         Iterator<Position> p1i = p1Moves.iterator(), p2i = p2Moves.iterator();
         while(true){
@@ -24,10 +24,12 @@ public class Test {
             if(p1i.hasNext()){
                 Position move = (Position) p1i.next();
                 b.markCell(move.i, move.j);
+                b.updateThreats(1);
             }
             if(p2i.hasNext()){
                 Position move = (Position) p2i.next();
                 b.markCell(move.i, move.j);
+                b.updateThreats(1);
             }
         }
     }
@@ -38,8 +40,7 @@ public class Test {
         gw.board.markCell(0, 1);
         gw.board.markCell(1, 1);
         gw.board.markCell(2, 1);
-        gw.getOpenThreats(gw.board, MNKCellState.P1, gw.board.K-2);
-        gw.getOpenThreats(gw.board, Player.getOpponent(gw.player.state()), gw.board.K-2);
+        gw.board.updateThreats(3);
 
         gw.initPlayer(7, 7, 4, true, 10);
         LinkedList<Position> p1Moves = new LinkedList<>();
@@ -68,13 +69,6 @@ public class Test {
         p2Moves.add(new Position(4,5));
 
         scenario(gw.board, p1Moves, p2Moves);
-        
-
-        gw.getOpenThreats(gw.board, MNKCellState.P1, 3);
-        gw.getOpenThreats(gw.board, MNKCellState.P1, 2);
-
-        gw.getOpenThreats(gw.board, Player.getOpponent(gw.player.state()), 3);
-        gw.getOpenThreats(gw.board, Player.getOpponent(gw.player.state()), 2);
     }
 
     public static void halfOpenThreatsTest(){
@@ -109,9 +103,27 @@ public class Test {
         p2Moves.add(new Position(6,3));
 
         scenario(gw.board, p1Moves, p2Moves);
+    }
 
-        gw.getHalfOpenThreats(gw.board, gw.player.state());
-        gw.getHalfOpenThreats(gw.board, Player.getOpponent(gw.player.state()));
+
+    public static void simpleThreeOpenThreats(){
+        GW gw = new GW();
+        gw.initPlayer(7, 7, 4, true, 10);
+        LinkedList<Position> p1Moves = new LinkedList<>();
+        p1Moves.add(new Position(1,1));
+        p1Moves.add(new Position(1,2));
+        p1Moves.add(new Position(2,2));
+        p1Moves.add(new Position(3,2));
+        p1Moves.add(new Position(4,1));
+
+        LinkedList<Position> p2Moves = new LinkedList<>();
+        p2Moves.add(new Position(0,6));
+        p2Moves.add(new Position(2,6));
+        p2Moves.add(new Position(4,6));
+        p2Moves.add(new Position(6,6));
+
+        scenario(gw.board, p1Moves, p2Moves);
+
     }
 
     public static void main(String[] args) {

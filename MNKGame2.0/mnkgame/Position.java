@@ -12,4 +12,5 @@ public class Position {
         this.i = i;
         this.j = j;
     }
+    public static boolean samePosition(MNKCell c1, MNKCell c2){ return c1.i == c2.i && c1.j == c2.j; }
 }
