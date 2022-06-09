@@ -81,8 +81,8 @@ public class Threat{
      * @return The Direction that guides the scanning of the board for winning
      *         alignments
      */
-    public static Direction getSearchDirection(Axis axis) {
-        switch (axis) {
+    public Direction sDirection() {
+        switch (this.axis) {
             case HORIZONTAL: { return Direction.E; }
             case VERTICAL: { return Direction.S; }
             case DIAGONAL: { return Direction.SE; }
@@ -91,8 +91,12 @@ public class Threat{
         }
     }
 
-    public static Direction getOppositeDirection(Direction direction) {
-        switch (direction) {
+    /**
+     * 
+     * @return The opposite direction of sDirection
+     */
+    public Direction oDirection() {
+        switch (sDirection()) {
             case N: { return Direction.S; }
             case NE: { return Direction.SW; }
             case E: { return Direction.W; }
@@ -101,7 +105,7 @@ public class Threat{
             case SW: { return Direction.NE; }
             case W: { return Direction.E; }
             case NW: { return Direction.SE; }
-            default: { return direction; }
+            default: { return sDirection(); }
         }
     }
 

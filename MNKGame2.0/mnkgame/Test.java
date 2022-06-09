@@ -34,6 +34,12 @@ public class Test {
         }
     }
 
+    public static void scenario(Board b, LinkedList<MNKCell> MC){
+        for(MNKCell c : MC){
+            b.markCell(c.i, c.j);
+        }
+    }
+
     public static void openThreatsTest(){
         GW gw = new GW();
         gw.initPlayer(3, 3, 3, true, 10);

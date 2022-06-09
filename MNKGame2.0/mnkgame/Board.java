@@ -41,7 +41,7 @@ public class Board extends MNKBoard {
      * @param pivot
      * @param size
      */
-    public void updateOpenThreats(MNKCell pivot, int size) {
+    private void updateOpenThreats(MNKCell pivot, int size) {
         for (Axis axis : Axis.values()) {
             updateOpenThreatsByAxis(pivot, size, axis);
         }
@@ -56,9 +56,9 @@ public class Board extends MNKBoard {
      * @return true if the cells left and right of the pivotal cell are of the same
      *         MNKCellState and not free and the cell is free
      */
-    boolean isJumpOnAxis(MNKCell cell, Axis axis) {
-        MNKCell left = getAdjacentCell(cell, Threat.getSearchDirection(axis));
-        MNKCell right = getAdjacentCell(cell, Threat.getOppositeDirection(Threat.getSearchDirection(axis)));
+    private boolean isJumpOnAxis(MNKCell cell, Threat t) {
+        MNKCell left = getAdjacentCell(cell, t.sDirection());
+        MNKCell right = getAdjacentCell(cell, t.oDirection());
 
         if (left.state == right.state && left.state != MNKCellState.FREE && cell.state == MNKCellState.FREE
                 && contains(cell))
@@ -67,30 +67,28 @@ public class Board extends MNKBoard {
             return false;
     }
 
-    public Threat findOpenThreatExtremities(Threat t, MNKCell pivot, int size) {
-        Direction oppositeDirection = Threat.getOppositeDirection(Threat.getSearchDirection(t.axis));
-        t.left = getAdjacentCell(pivot, oppositeDirection);
+    private Threat findOpenThreatExtremities(Threat t, MNKCell pivot, int size) {
+        t.left = getAdjacentCell(pivot, t.oDirection());
         // find a possible left extremity and count the no. of marked cells to the left
         // of the pivot
 
         while (t.left.state == pivot.state && t.size < size && contains(t.left)) {
             t.size++;
-            t.left = getAdjacentCell(t.left, oppositeDirection);
+            t.left = getAdjacentCell(t.left, t.oDirection());
         }
 
         // right extremity
-        Direction searchDirection = Threat.getSearchDirection(t.axis);
-        t.right = getAdjacentCell(pivot, searchDirection);
+        t.right = getAdjacentCell(pivot, t.sDirection());
 
         // count the no. of marked cells to the right of the pivot
         while (contains(t.right) && t.right.state == pivot.state && t.size < size) {
             t.size++;
-            t.right = getAdjacentCell(t.right, searchDirection);
+            t.right = getAdjacentCell(t.right, t.sDirection());
         }
         return t;
     }
 
-    public boolean isStandaloneValidOpenThreat(Threat t, int size) {
+    private boolean isStandaloneValidOpenThreat(Threat t, int size) {
         return t.left.state == MNKCellState.FREE && t.right.state == MNKCellState.FREE
                 && contains(t.left) && contains(t.right)
                 && t.size == size
@@ -100,7 +98,7 @@ public class Board extends MNKBoard {
     // now performs search by pivoting aronund a cell
     // improve diagonal and antidiagonal search
     // assumes pivot is a marked cell
-    public void updateOpenThreatsByAxis(MNKCell pivot, int size, Axis axis) {
+    private void updateOpenThreatsByAxis(MNKCell pivot, int size, Axis axis) {
         Threat t = new Threat();
         t.size = 1;
         t.axis = axis;
@@ -115,46 +113,44 @@ public class Board extends MNKBoard {
             addThreat(t);
     }
 
-    public void updateHalfOpenThreats(MNKCell cell) {
+    private void updateHalfOpenThreats(MNKCell cell) {
         for (Axis axis : Axis.values()) {
             updateHalfOpenThreatsByAxis(cell, axis);
         }
     }
 
-    public Threat findHalfOpenThreatsExtremities(Threat t, MNKCell pivot, int size) {
+    private Threat findHalfOpenThreatsExtremities(Threat t, MNKCell pivot, int size) {
         // left extremitiy
-        Direction oppositeDirection = Threat.getOppositeDirection(Threat.getSearchDirection(t.axis));
-        t.left = getAdjacentCell(pivot, oppositeDirection);
+        t.left = getAdjacentCell(pivot, t.oDirection());
         // look for an extremity on the left
-        while ((t.left.state == pivot.state || (isJumpOnAxis(t.left, t.axis) && t.jumps < 1)) && t.size < size) {
+        while ((t.left.state == pivot.state || (isJumpOnAxis(t.left, t) && t.jumps < 1)) && t.size < size) {
             if (t.left.state == pivot.state) {
                 t.size++;
             }
-            if (isJumpOnAxis(t.left, t.axis)) {
+            if (isJumpOnAxis(t.left, t)) {
                 t.jumps++;
             }
 
-            t.left = getAdjacentCell(t.left, oppositeDirection);
+            t.left = getAdjacentCell(t.left, t.oDirection());
         }
 
         // right extremity
-        Direction searchDirection = Threat.getSearchDirection(t.axis);
-        t.right = getAdjacentCell(pivot, searchDirection);
+        t.right = getAdjacentCell(pivot, t.sDirection());
         // look for an extremity on the right
-        while ((t.right.state == pivot.state || (isJumpOnAxis(t.right, t.axis) && t.jumps < 1)) && t.size < size) {
+        while ((t.right.state == pivot.state || (isJumpOnAxis(t.right, t) && t.jumps < 1)) && t.size < size) {
             if (t.right.state == pivot.state) {
                 t.size++;
             }
-            if (isJumpOnAxis(t.right, t.axis)) {
+            if (isJumpOnAxis(t.right, t)) {
                 t.jumps++;
             }
 
-            t.right = getAdjacentCell(t.right, oppositeDirection);
+            t.right = getAdjacentCell(t.right, t.oDirection());
         }
         return t;
     }
 
-    public boolean isStandaloneValidHalfOpenThreat(Threat t, MNKCell pivot) {
+    private boolean isStandaloneValidHalfOpenThreat(Threat t, MNKCell pivot) {
         boolean zeroExtMarkedByPlayer = t.left.state != pivot.state && t.right.state != pivot.state;
         boolean exactlyOneExtIsFreeAndInBounds = (t.left.state == MNKCellState.FREE
                 && contains(t.left)) ^ (t.right.state == MNKCellState.FREE && contains(t.right));
@@ -175,7 +171,7 @@ public class Board extends MNKBoard {
      * @todo does not detect the generation of 2 half open threats
      * @return
      */
-    public void updateHalfOpenThreatsByAxis(MNKCell pivot, Axis axis) {
+    private void updateHalfOpenThreatsByAxis(MNKCell pivot, Axis axis) {
         Threat t = new Threat();
         t.axis = axis;
         t.player = pivot.state;
@@ -183,18 +179,16 @@ public class Board extends MNKBoard {
         t.tt = ThreatType.HALF_OPEN;
         t.jumps = 0;
 
-        t = findHalfOpenThreatsExtremities(t, pivot, K-1);
+        t = findHalfOpenThreatsExtremities(t, pivot, K - 1);
 
         if (isStandaloneValidHalfOpenThreat(t, pivot))
             addThreat(t);
     }
 
-    public void addThreat(Threat t) {
+    private void addThreat(Threat t) {
         // check if threat is redundant
         redundancyCheck(t);
     }
-
-
 
     /**
      * assumes cell to belong to the oppoent of t.player
@@ -203,7 +197,7 @@ public class Board extends MNKBoard {
      * @param cell
      * @return
      */
-    public Threat updateOpenThreatExtremities(Threat t, MNKCell cell) {
+    private Threat updateOpenThreatExtremities(Threat t, MNKCell cell) {
         if (K - t.size == 1) {
             if (Position.samePosition(t.left, cell)) {
                 t.left = cell;
@@ -222,11 +216,12 @@ public class Board extends MNKBoard {
 
     /**
      * @todo did not change the extremity when cell was marked
+     * assumes the cell to be belong to the opponent of t.player
      * @param t
      * @param cell
      * @return
      */
-    public Threat updateHalfOpenThreatsExtremities(Threat t, MNKCell cell) {
+    private Threat updateHalfOpenThreatsExtremities(Threat t, MNKCell cell) {
 
         if (t.jumps == 0) {
             // if the threat contains the newly marked cell and we have a half open k-1
@@ -244,7 +239,7 @@ public class Board extends MNKBoard {
         return t;
     }
 
-    public Threat reviseThreat(Threat t, MNKCell cell) {
+    public Threat addCellToThreat(Threat t, MNKCell cell) {
         switch (t.tt) {
             case OPEN: {
                 t = updateOpenThreatExtremities(t, cell);
@@ -265,32 +260,28 @@ public class Board extends MNKBoard {
      * 
      * @param cell
      */
-    public void updateOpponentThreats(MNKCell cell) {
+    private void updateOpponentThreats(MNKCell cell) {
         for (Axis axis : Axis.values()) {
             HashSet<Threat> axisThreats = new HashSet<>();
             for (Threat t : getPlayerThreats(Player.getOpponent(cell.state)).getThreatsByAxis(axis)) {
                 if (!t.contains(cell))
                     axisThreats.add(t);
                 else {
-                    t = reviseThreat(t, cell);
+                    t = addCellToThreat(t, cell);
                     if (t.size != 0)
                         axisThreats.add(t);
                 }
             }
-            // check if it actually works
             getPlayerThreats(Player.getOpponent(cell.state)).setThreatsByAxis(axis, axisThreats);
         }
     }
 
     public void updateThreats(int lastMoves) {
         MNKCell[] MC = getMarkedCells();
-        for (int i = lastMoves; i > 0; i--) {
-            // check for no longer valid threats or check for them when performing the
-            // redundancy check
-
+        for (int i = lastMoves; i > 0 || MC.length - i < 0; i--) {
             MNKCell pivot = MC[MC.length - i];
             updateOpponentThreats(pivot);
-            // need to update the methods to perfrom the search in both directions
+
             updateOpenThreats(pivot, K - 1);
             updateOpenThreats(pivot, K - 2);
             updateHalfOpenThreats(pivot);
@@ -320,7 +311,7 @@ public class Board extends MNKBoard {
      * @param j
      * @return the cell in (i,j)
      */
-    MNKCell getCellAt(int i, int j) {
+    public MNKCell getCellAt(int i, int j) {
         MNKCell cell = new MNKCell(i, j);
 
         if (contains(cell))
@@ -393,15 +384,12 @@ public class Board extends MNKBoard {
      * @return true if the threats have at least one adjacent extremity
      */
     public boolean differByOne(Threat t1, Threat t2) {
-        Direction searchDirection = Threat.getSearchDirection(t1.axis);
-        Direction oppDirection = Threat.getOppositeDirection(searchDirection);
-
         // if t1's left extremity is adjacent to t2's left extremity
         // or t1's right extremity is adjacent to t2' right extremity
-        if (t1.left.equals(getAdjacentCell(t2.left, searchDirection))
-                || t1.left.equals(getAdjacentCell(t2.left, oppDirection))
-                || t1.right.equals(getAdjacentCell(t2.right, searchDirection))
-                || t1.right.equals(getAdjacentCell(t2.right, oppDirection))) {
+        if (t1.left.equals(getAdjacentCell(t2.left, t1.sDirection()))
+                || t1.left.equals(getAdjacentCell(t2.left, t1.oDirection()))
+                || t1.right.equals(getAdjacentCell(t2.right, t1.sDirection()))
+                || t1.right.equals(getAdjacentCell(t2.right, t1.oDirection()))) {
             return true;
         }
 
@@ -409,7 +397,7 @@ public class Board extends MNKBoard {
     }
 
     // update so that diagonal axes take constant time
-    public boolean containerContainsContained(Threat container, Threat contained) {
+    private boolean containerContainsContained(Threat container, Threat contained) {
         return container.contains(contained.left) && container.contains(contained.right);
     }
 
@@ -441,7 +429,7 @@ public class Board extends MNKBoard {
      * Some subset of threats can be closed upon marking the same cell,
      * so this makes sure that only one threat is counted
      */
-    public void redundancyCheck(Threat t) {
+    private void redundancyCheck(Threat t) {
         // it 's redundant if it's either contained in another threat
         // or if one or both of its extremities differ by one unit in either two of the
         // threat's axis search direction
