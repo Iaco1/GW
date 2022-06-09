@@ -3,80 +3,11 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Launch MNKGame",
-            "request": "launch",
-            "mainClass": "mnkgame.MNKGame",
-            "projectName": "GW_ecb4be52"
-        },
-        {
-            "type": "java",
-            "name": "Launch Test",
-            "request": "launch",
-            "mainClass": "mnkgame.Test",
-            "projectName": "GW_ecb4be52"
-        },
-        {
-            "type": "java",
-            "name": "Launch MNKPlayerTester",
-            "request": "launch",
-            "mainClass": "mnkgame.MNKPlayerTester",
-            "projectName": "GW_ecb4be52"
-        },
-        {
-            "type": "java",
-            "name": "Tester 333 random++ vs GW",
+            "name": "gameDebug",
             "request": "launch",
             "mainClass": "mnkgame.MNKPlayerTester",
             "projectName": "GW_e4941194",
-            "args": "3 3 3 mnkgame.QuasiRandomPlayer mnkgame.GW -r 50 -t 10"
-        },
-        {
-            "type": "java",
-            "name": "Tester 433 random++ vs GW",
-            "request": "launch",
-            "mainClass": "mnkgame.MNKPlayerTester",
-            "projectName": "GW_e4941194",
-            "args": "4 3 3 mnkgame.QuasiRandomPlayer mnkgame.GW -r 50 -t 10"
-        },
-        {
-            "type": "java",
-            "name": "Tester 433 GW vs random++",
-            "request": "launch",
-            "mainClass": "mnkgame.MNKPlayerTester",
-            "projectName": "GW_e4941194",
-            "args": "4 3 3 mnkgame.GW mnkgame.QuasiRandomPlayer -r 50 -t 10"
-        },
-        {
-            "type": "java",
-            "name": "Tester 433 GW vs GW",
-            "request": "launch",
-            "mainClass": "mnkgame.MNKPlayerTester",
-            "projectName": "GW_e4941194",
-            "args": "4 3 3 mnkgame.GW mnkgame.GW -r 50 -t 10"
-        },
-        {
-            "type": "java",
-            "name": "Tester 443 random++ vs GW",
-            "request": "launch",
-            "mainClass": "mnkgame.MNKPlayerTester",
-            "projectName": "GW_e4941194",
-            "args": "4 4 3 mnkgame.QuasiRandomPlayer mnkgame.GW -r 50 -t 10"
-        },
-        {
-            "type": "java",
-            "name": "Tester 443 GW vs random++",
-            "request": "launch",
-            "mainClass": "mnkgame.MNKPlayerTester",
-            "projectName": "GW_e4941194",
-            "args": "4 4 3 mnkgame.GW mnkgame.QuasiRandomPlayer -r 50 -t 10"
-        },
-        {
-            "type": "java",
-            "name": "Tester 443 GW vs GW",
-            "request": "launch",
-            "mainClass": "mnkgame.MNKPlayerTester",
-            "projectName": "GW_e4941194",
-            "args": "4 4 3 mnkgame.GW mnkgame.GW -r 50 -t 10"
+            "args": "4 3 3 mnkgame.GW mnkgame.QuasiRandomPlayer"
         },
         {
             "type": "java",
