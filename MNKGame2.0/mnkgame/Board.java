@@ -10,6 +10,9 @@ public class Board extends MNKBoard {
     public ThreatsByAxis p1Threats;
     public ThreatsByAxis p2Threats;
 
+    //--------------------------------------------------------------------------------------------------------------------------------------------------
+    /* PUBLIC INTERFACE FOR OTHER CLASSES (BELOW) */
+    
     public Board(int m, int n, int k) {
         super(m, n, k);
         p1Threats = new ThreatsByAxis();
@@ -17,7 +20,6 @@ public class Board extends MNKBoard {
     }
 
     /**
-     * @param b     The board to check for k-sized threats
      * @param state The player's whose threats we are interested in
      * @return 1 if the game is over and the selected player has won, 0 otherwise
      */
@@ -36,37 +38,80 @@ public class Board extends MNKBoard {
     }
 
     /**
-     * searches for open threats around a pivot cell on all four axes
-     * 
-     * @param pivot
-     * @param size
+     * updates the threats data structures by searching for new threats and deleting old ones
+     * assumes itself was run on the moves preceeding the last moves 
+     * @param lastMoves
      */
-    private void updateOpenThreats(MNKCell pivot, int size) {
-        for (Axis axis : Axis.values()) {
-            updateOpenThreatsByAxis(pivot, size, axis);
+    public void updateThreats(int lastMoves) {
+        MNKCell[] MC = getMarkedCells();
+        for (int i = lastMoves; i > 0 || MC.length - i < 0; i--) {
+            MNKCell pivot = MC[MC.length - i];
+            addCellToOpponentThreats(pivot);
+
+            updateOpenThreats(pivot, K - 1);
+            updateOpenThreats(pivot, K - 2);
+            updateHalfOpenThreats(pivot);
         }
     }
 
     /**
-     * does not check whether the cell is in the bounds of the board, but no P1 or
-     * P2 cell should be out of bounds so that should be no problem
-     * 
-     * @param cell
-     * @param axis
-     * @return true if the cells left and right of the pivotal cell are of the same
-     *         MNKCellState and not free and the cell is free
+     * undoes the effect of updateThreats() on the threats data structures for the last specified moves
+     * @param lastMoves
      */
-    private boolean isJumpOnAxis(MNKCell cell, Threat t) {
-        MNKCell left = getAdjacentCell(cell, t.sDirection());
-        MNKCell right = getAdjacentCell(cell, t.oDirection());
+    public void undoLastUpdate(int lastMoves){
+        MNKCell[] MC = getMarkedCells();
+        for (int i = lastMoves; i > 0 || MC.length - i < 0; i--) {
+            MNKCell pivot = MC[MC.length - i];
+            /**
+             * update threats from the player who played the last move
+             * take all threats that contain the last move
+             * modify them so as to not contain the last marked cell
+             * if they're still a threat keep it else discard it
+             */
+            updateThreatsContaining(pivot);
+            
 
-        if (left.state == right.state && left.state != MNKCellState.FREE && cell.state == MNKCellState.FREE
-                && contains(cell))
-            return true;
-        else
-            return false;
+            
+            /**
+             * search for 
+             * k-1 open
+             * k-1 half-open
+             * k-2 open
+             * threats for the opponent of the player that played the last move 
+             * by pivoting around the newly empty cell 
+             * 
+             */
+        }
+    }
+    
+    /* PUBLIC INTERFACE FOR OTHER CLASSES (ABOVE) */
+    //--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+    //--------------------------------------------------------------------------------------------------------------------------------------------------
+    /* OPEN THREAT SEARCH (BELOW) */
+    
+    /**
+     * checks the definition of threat
+     * @param t The threat to be analysed
+     * @param size the desired size for the threat
+     * @return
+     */
+    private boolean isStandaloneValidOpenThreat(Threat t, int size) {
+        return t.left.state == MNKCellState.FREE && t.right.state == MNKCellState.FREE
+                && contains(t.left) && contains(t.right)
+                && t.size == size
+                && t.jumps == 0;
     }
 
+    /**
+     * Searches for the extremities of an open threat
+     * @param t The empty threat that will possibly be filled with data about the existing threat 
+     * @param pivot The cell from which to start searching
+     * @param size The size of the threat to look for
+     * @return 
+     */
     private Threat findOpenThreatExtremities(Threat t, MNKCell pivot, int size) {
         t.left = getAdjacentCell(pivot, t.oDirection());
         // find a possible left extremity and count the no. of marked cells to the left
@@ -88,16 +133,12 @@ public class Board extends MNKBoard {
         return t;
     }
 
-    private boolean isStandaloneValidOpenThreat(Threat t, int size) {
-        return t.left.state == MNKCellState.FREE && t.right.state == MNKCellState.FREE
-                && contains(t.left) && contains(t.right)
-                && t.size == size
-                && t.jumps == 0;
-    }
-
-    // now performs search by pivoting aronund a cell
-    // improve diagonal and antidiagonal search
-    // assumes pivot is a marked cell
+    /**
+     * searches for new open threats of the requested size, on the requested axis by pivoting the search from the pivot cell
+     * @param pivot
+     * @param size
+     * @param axis
+     */
     private void updateOpenThreatsByAxis(MNKCell pivot, int size, Axis axis) {
         Threat t = new Threat();
         t.size = 1;
@@ -113,12 +154,51 @@ public class Board extends MNKBoard {
             addThreat(t);
     }
 
-    private void updateHalfOpenThreats(MNKCell cell) {
+    /**
+     * searches for open threats around a pivot cell on all four axes
+     * 
+     * @param pivot
+     * @param size
+     */
+    private void updateOpenThreats(MNKCell pivot, int size) {
         for (Axis axis : Axis.values()) {
-            updateHalfOpenThreatsByAxis(cell, axis);
+            updateOpenThreatsByAxis(pivot, size, axis);
         }
     }
 
+    /* OPEN THREAT SEARCH (ABOVE) */
+    //--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+    //--------------------------------------------------------------------------------------------------------------------------------------------------
+    /* HALF-OPEN THREAT SEARCH (BELOW) */
+
+    /**
+     * Basically the definition of an half-open k-1 threat through which t must be passed to know if it actually is a valid threat
+     * @param t The threat
+     * @param pivot The cell from which the search started and 
+     * @return true if it follows the definition
+     */
+    private boolean isStandaloneValidHalfOpenThreat(Threat t) {
+        boolean zeroExtMarkedByPlayer = t.left.state != t.player && t.right.state != t.player;
+        boolean exactlyOneExtIsFreeAndInBounds = (t.left.state == MNKCellState.FREE
+                && contains(t.left)) ^ (t.right.state == MNKCellState.FREE && contains(t.right));
+        boolean leqOneExtMarkedByPlayer = !(t.left.state == t.player && t.right.state == t.player);
+
+        return t.size == K - 1
+                &&
+                ((t.jumps == 0 && exactlyOneExtIsFreeAndInBounds && zeroExtMarkedByPlayer)
+                        || (t.jumps == 1 && leqOneExtMarkedByPlayer));
+    }
+
+    /**
+     * receives an empty threat and is required to return an open threat of the desired size if possible 
+     * @param t The object in which to store the threat
+     * @param pivot The cell from which to start the search
+     * @param size the size of the threat
+     * @return the largest threat found
+     */
     private Threat findHalfOpenThreatsExtremities(Threat t, MNKCell pivot, int size) {
         // left extremitiy
         t.left = getAdjacentCell(pivot, t.oDirection());
@@ -150,18 +230,6 @@ public class Board extends MNKBoard {
         return t;
     }
 
-    private boolean isStandaloneValidHalfOpenThreat(Threat t, MNKCell pivot) {
-        boolean zeroExtMarkedByPlayer = t.left.state != pivot.state && t.right.state != pivot.state;
-        boolean exactlyOneExtIsFreeAndInBounds = (t.left.state == MNKCellState.FREE
-                && contains(t.left)) ^ (t.right.state == MNKCellState.FREE && contains(t.right));
-        boolean leqOneExtMarkedByPlayer = !(t.left.state == pivot.state && t.right.state == pivot.state);
-
-        return t.size == K - 1
-                &&
-                ((t.jumps == 0 && exactlyOneExtIsFreeAndInBounds && zeroExtMarkedByPlayer)
-                        || (t.jumps == 1 && leqOneExtMarkedByPlayer));
-    }
-
     /**
      * Adds the k-1 half open threats to evaluatedThreats for the selected player
      * assumes pivot is of MNKCellState P1 or P2
@@ -181,112 +249,27 @@ public class Board extends MNKBoard {
 
         t = findHalfOpenThreatsExtremities(t, pivot, K - 1);
 
-        if (isStandaloneValidHalfOpenThreat(t, pivot))
+        if (isStandaloneValidHalfOpenThreat(t))
             addThreat(t);
     }
 
-    private void addThreat(Threat t) {
-        // check if threat is redundant
-        redundancyCheck(t);
-    }
-
     /**
-     * assumes cell to belong to the oppoent of t.player
-     * 
-     * @param t
-     * @param cell
-     * @return
-     */
-    private Threat updateOpenThreatExtremities(Threat t, MNKCell cell) {
-        if (K - t.size == 1) {
-            if (Position.samePosition(t.left, cell)) {
-                t.left = cell;
-                t.tt = ThreatType.HALF_OPEN;
-            } else if (Position.samePosition(t.right, cell)) {
-                t.right = cell;
-                t.tt = ThreatType.HALF_OPEN;
-            }
-        } else if (K - t.size == 2 && (Position.samePosition(t.left, cell) || Position.samePosition(t.right, cell))) {
-            // the other methods already handle the change from a k-2 open threat to a k-1
-            // open threat
-            t.size = 0;
-        }
-        return t;
-    }
-
-    /**
-     * @todo did not change the extremity when cell was marked
-     * assumes the cell to be belong to the opponent of t.player
-     * @param t
-     * @param cell
-     * @return
-     */
-    private Threat updateHalfOpenThreatsExtremities(Threat t, MNKCell cell) {
-
-        if (t.jumps == 0) {
-            // if the threat contains the newly marked cell and we have a half open k-1
-            // threat with one free extremity and zero jumps the marked cell must be the
-            // other extremity thus closing the threat
-            t.size = 0;
-        }else if (t.jumps == 1) {
-            if (Position.samePosition(cell, t.left))
-                t.left = cell;
-            else if (Position.samePosition(cell, t.right))
-                t.right = cell;
-            else
-                t.size = 0; // the cell must have closed the jump
-        }
-        return t;
-    }
-
-    public Threat addCellToThreat(Threat t, MNKCell cell) {
-        switch (t.tt) {
-            case OPEN: {
-                t = updateOpenThreatExtremities(t, cell);
-                break;
-            }
-            case HALF_OPEN: {
-                t = updateHalfOpenThreatsExtremities(t, cell);
-                break;
-            }
-            default:
-                break;
-        }
-        return t;
-    }
-
-    /**
-     * assumes cell is marked by P1 or P2
-     * 
+     * driver method for updateHalfOpenThreatsByAxis()
      * @param cell
      */
-    private void updateOpponentThreats(MNKCell cell) {
+    private void updateHalfOpenThreats(MNKCell cell) {
         for (Axis axis : Axis.values()) {
-            HashSet<Threat> axisThreats = new HashSet<>();
-            for (Threat t : getPlayerThreats(Player.getOpponent(cell.state)).getThreatsByAxis(axis)) {
-                if (!t.contains(cell))
-                    axisThreats.add(t);
-                else {
-                    t = addCellToThreat(t, cell);
-                    if (t.size != 0)
-                        axisThreats.add(t);
-                }
-            }
-            getPlayerThreats(Player.getOpponent(cell.state)).setThreatsByAxis(axis, axisThreats);
+            updateHalfOpenThreatsByAxis(cell, axis);
         }
     }
 
-    public void updateThreats(int lastMoves) {
-        MNKCell[] MC = getMarkedCells();
-        for (int i = lastMoves; i > 0 || MC.length - i < 0; i--) {
-            MNKCell pivot = MC[MC.length - i];
-            updateOpponentThreats(pivot);
+    /* HALF-OPEN THREAT SEARCH (ABOVE) */
+    //--------------------------------------------------------------------------------------------------------------------------------------------------
+    
 
-            updateOpenThreats(pivot, K - 1);
-            updateOpenThreats(pivot, K - 2);
-            updateHalfOpenThreats(pivot);
-        }
-    }
+
+    //--------------------------------------------------------------------------------------------------------------------------------------------------
+    /* CELL PROPERTIES (BELOW) */
 
     /**
      * @param cell
@@ -298,12 +281,23 @@ public class Board extends MNKBoard {
     }
 
     /**
-     * @param cell The cell to evaluate
-     * @return True if it's not an opponents' cell and is in the bounds of the board
-     * @author Davide Iacomino
+     * does not check whether the cell is in the bounds of the board, but no P1 or
+     * P2 cell should be out of bounds so that should be no problem
+     * 
+     * @param cell
+     * @param axis
+     * @return true if the cells left and right of the pivotal cell are of the same
+     *         MNKCellState and not free and the cell is free
      */
-    public boolean isAlignable(MNKCell pivot, MNKCell cell) {
-        return (cell.state != Player.getOpponent(pivot.state) && contains(cell));
+    private boolean isJumpOnAxis(MNKCell cell, Threat t) {
+        MNKCell left = getAdjacentCell(cell, t.sDirection());
+        MNKCell right = getAdjacentCell(cell, t.oDirection());
+
+        if (left.state == right.state && left.state != MNKCellState.FREE && cell.state == MNKCellState.FREE
+                && contains(cell))
+            return true;
+        else
+            return false;
     }
 
     /**
@@ -375,6 +369,18 @@ public class Board extends MNKBoard {
         return getCellAt(i, j);
     }
 
+    /* CELL PROPERTIES (ABOVE) */
+    //--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+    //--------------------------------------------------------------------------------------------------------------------------------------------------
+    /* THREAT PROPERTIES AND MODIFYING (BELOW) */
+
+    private boolean containerContainsContained(Threat container, Threat contained) {
+        return container.contains(contained.left) && container.contains(contained.right);
+    }
+
     /**
      * no checks whatsoever on the threats
      * assumes the threats are updated to the last move
@@ -383,7 +389,7 @@ public class Board extends MNKBoard {
      * @param t2
      * @return true if the threats have at least one adjacent extremity
      */
-    public boolean differByOne(Threat t1, Threat t2) {
+    private boolean differByOne(Threat t1, Threat t2) {
         // if t1's left extremity is adjacent to t2's left extremity
         // or t1's right extremity is adjacent to t2' right extremity
         if (t1.left.equals(getAdjacentCell(t2.left, t1.sDirection()))
@@ -396,39 +402,242 @@ public class Board extends MNKBoard {
         return false;
     }
 
-    // update so that diagonal axes take constant time
-    private boolean containerContainsContained(Threat container, Threat contained) {
-        return container.contains(contained.left) && container.contains(contained.right);
+    /**
+     * @todo did not change the extremity when cell was marked
+     * assumes the cell to be belong to the opponent of t.player
+     * @param t
+     * @param cell
+     * @return
+     */
+    private Threat updateHalfOpenThreatsExtremities(Threat t, MNKCell cell) {
+        if (t.jumps == 0) {
+            // if the threat contains the newly marked cell and we have a half open k-1
+            // threat with one free extremity and zero jumps the marked cell must be the
+            // other extremity thus closing the threat
+            t.size = 0;
+        }else if (t.jumps == 1) {
+            if (Position.samePosition(cell, t.left))
+                t.left = cell;
+            else if (Position.samePosition(cell, t.right))
+                t.right = cell;
+            else
+                t.size = 0; // the cell must have closed the jump
+        }
+        return t;
     }
 
-    public ThreatsByAxis getPlayerThreats(MNKCellState state) {
-        if (state == MNKCellState.P1)
-            return p1Threats;
-        else if (state == MNKCellState.P2)
-            return p2Threats;
-        else
-            return null;
+    /**
+     * assumes cell to belong to the oppoent of t.player
+     * 
+     * @param t
+     * @param cell
+     * @return
+     */
+    private Threat updateOpenThreatExtremities(Threat t, MNKCell cell) {
+        if (K - t.size == 1) {
+            if (Position.samePosition(t.left, cell)) {
+                t.left = cell;
+                t.tt = ThreatType.HALF_OPEN;
+            } else if (Position.samePosition(t.right, cell)) {
+                t.right = cell;
+                t.tt = ThreatType.HALF_OPEN;
+            }
+        } else if (K - t.size == 2 && (Position.samePosition(t.left, cell) || Position.samePosition(t.right, cell))) {
+            // the other methods already handle the change from a k-2 open threat to a k-1
+            // open threat
+            t.size = 0;
+        }
+        return t;
     }
 
-    public void setPlayerThreats(MNKCellState state, ThreatsByAxis threats) {
-        switch (state) {
-            case P1: {
-                p1Threats = threats;
+    /**
+     * Modifies the threat according to where cell appears in the threat
+     * @param t
+     * @param cell
+     * @return
+     */
+    private Threat addCellToThreat(Threat t, MNKCell cell) {
+        switch (t.tt) {
+            case OPEN: {
+                t = updateOpenThreatExtremities(t, cell);
                 break;
             }
-            case P2: {
-                p2Threats = threats;
+            case HALF_OPEN: {
+                t = updateHalfOpenThreatsExtremities(t, cell);
                 break;
             }
             default:
                 break;
         }
+        return t;
     }
+
+    /**
+     * assumes cell is marked by P1 or P2
+     * 
+     * @param cell
+     */
+    private void addCellToOpponentThreats(MNKCell cell) {
+        for (Axis axis : Axis.values()) {
+            HashSet<Threat> axisThreats = new HashSet<>();
+            for (Threat t : getPlayerThreats(Player.getOpponent(cell.state)).getThreatsByAxis(axis)) {
+                if (!t.contains(cell))
+                    axisThreats.add(t);
+                else {
+                    t = addCellToThreat(t, cell);
+                    if (t.size != 0)
+                        axisThreats.add(t);
+                }
+            }
+            getPlayerThreats(Player.getOpponent(cell.state)).setThreatsByAxis(axis, axisThreats);
+        }
+    }
+
+    /**
+     * true if cell is sandwiched between a jump and an extremity
+     * also 
+     * @param t
+     * @param c
+     * @return
+     */
+    private boolean sandwichMod(Threat t, MNKCell c){
+        MNKCell leftAdj = getAdjacentCell(c, t.sDirection());
+        MNKCell rightAdj = getAdjacentCell(c, t.oDirection());
+        boolean isJmpOnAxis = isJumpOnAxis(c, t);
+
+        if( leftAdj.equals(t.left) && isJmpOnAxis){
+            t = new Threat(rightAdj, t.right, t.axis, t.player, t.size-1, ThreatType.OPEN, 0);
+            return true;    
+        }else if(rightAdj.equals(t.right) && isJmpOnAxis){
+            t = new Threat(t.left, leftAdj, t.axis, t.player, t.size-1, ThreatType.OPEN, 0);
+            return true;
+        }else return false;
+
+    }
+
+    /**
+     * assumes cell is of the same state as t.player
+     * removes cell from the threat
+     * generally if the threat contains a marked cell sandwiched between a jump and an extremity you will get a k-2 open threat
+     * otherwise you will get a 0-sized threat
+     * @param t
+     * @param cell
+     * @return
+     */
+    public Threat removeCellFromHalfOpenThreat(Threat t, MNKCell cell) {
+        if(cell.equals(t.left)) t.left = new MNKCell(cell.i, cell.j, MNKCellState.FREE);
+        else if(cell.equals(t.right)) t.right = new MNKCell(cell.i, cell.j, MNKCellState.FREE);
+        else if(sandwichMod(t, cell)) return t;
+        else return new Threat();
+        
+        return t;
+    }
+
+    /**
+     * assumes cell is of the same MNKCellState as t.player
+     * removes cell from the open threat
+     * if the threat is of size k-1 and the cell is adjacent to an extremity you will get a k-2 threat
+     * else the threat will be assigned size 0
+     * @param t
+     * @param cell
+     * @return
+     */
+    public Threat removeCellFromOpenThreat(Threat t, MNKCell cell) {
+        // the cell can never be an extremity because open threats have both extremies
+        // free
+        switch (K - t.size) {
+            case 1: {
+                // in this case if the removed cell is next to the extremity (edge) the threat
+                // will be of size k-2
+                MNKCell leftEdge = getAdjacentCell(t.left, t.sDirection());
+                MNKCell rightEdge = getAdjacentCell(t.right, t.oDirection());
+                if (leftEdge.equals(cell)) {
+                    t.left = new MNKCell(leftEdge.i, leftEdge.j, MNKCellState.FREE);
+                    t.size--;
+                } else if (rightEdge.equals(cell)) {
+                    t.right = new MNKCell(rightEdge.i, rightEdge.j, MNKCellState.FREE);
+                    t.size--;
+                } else {
+                    // cell is not an edge but is in the threat thus the threat is irrequivocally
+                    // split up
+                    t = new Threat();
+                }
+                break;
+            }
+            case 2: {
+                // the threat would become at best (edge case) a k-3 threat which we do not
+                // consider
+                // or at worst not a threat
+                t = new Threat();
+                break;
+            }
+            default:
+                break;
+        }
+        return t;
+
+    }
+
+    /**
+     * assumes cell is of the same MNKCellState as t.player
+     * it removes the cell from the threat and modifies it accordingly
+     * you will either get a 0-sized threat or a modified threat
+     * 
+     * @param t
+     * @param cell
+     * @return
+     */
+    public Threat removeCellFromThreat(Threat t, MNKCell cell) {
+        switch (t.tt) {
+            case OPEN: {
+                // update threat by removing a cell in case Open
+                t = removeCellFromOpenThreat(t, cell);
+                break;
+            }
+            case HALF_OPEN: {
+                // update threat by removing a cell in case Half Open
+                t = removeCellFromHalfOpenThreat(t, cell);
+                break;
+            }
+        }
+        return t;
+    }
+
+    /**
+     * removes cell from all threats that contain it and if the threat still follows the definition it will be kept and modified
+     * else it will be discarded
+     * 
+     * @param cell
+     */
+    public void updateThreatsContaining(MNKCell cell) {
+        for (Axis axis : Axis.values()) {
+            HashSet<Threat> axisThreats = new HashSet<>();
+            for (Threat t : getPlayerThreats(cell.state).getThreatsByAxis(axis)) {
+                if (!t.contains(cell))
+                    axisThreats.add(t);
+                else {
+                    t = removeCellFromThreat(t, cell);
+                    
+                    if (t.size != 0)
+                        axisThreats.add(t);
+                }
+            }
+            getPlayerThreats(cell.state).setThreatsByAxis(axis, axisThreats);
+        }
+    }
+
+    /* THREAT PROPERTIES AND MODIFYING (ABOVE) */
+    //--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+    //--------------------------------------------------------------------------------------------------------------------------------------------------
+    /* THREATS BY AXIS OPERATIONS (BELOW) */
 
     /**
      * Some subset of threats can be closed upon marking the same cell,
      * so this makes sure that only one threat is counted
-     */
+    */
     private void redundancyCheck(Threat t) {
         // it 's redundant if it's either contained in another threat
         // or if one or both of its extremities differ by one unit in either two of the
@@ -451,4 +660,21 @@ public class Board extends MNKBoard {
             updatedThreats.add(t);
         getPlayerThreats(t.player).setThreatsByAxis(t.axis, updatedThreats);
     }
+
+    private void addThreat(Threat t) {
+        // check if threat is redundant
+        redundancyCheck(t);
+    }
+
+    public ThreatsByAxis getPlayerThreats(MNKCellState state) {
+        if (state == MNKCellState.P1)
+            return p1Threats;
+        else if (state == MNKCellState.P2)
+            return p2Threats;
+        else
+            return null;
+    }
+
+    /* THREATS BY AXIS OPERATIONS (ABOVE) */
+    //--------------------------------------------------------------------------------------------------------------------------------------------------
 }
