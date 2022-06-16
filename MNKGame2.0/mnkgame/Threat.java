@@ -116,4 +116,10 @@ public class Threat{
         return (x - x1)*(y2 - y1) == (y - y1)*(x2 - x1) 
         && (y >= lbi && y <= hbi) && (x >= lbj && x <= hbj);
     }
+
+    public String toString(){
+        return "[ " + this.left.toString() + ", " + this.right.toString() + " ]"
+        + "\n[" + this.player + ", " + this.axis + ", " + this.jumps + " ]"
+        + "\n[ " + this.tt + ", " + this.size + " ]";
+    }
 }

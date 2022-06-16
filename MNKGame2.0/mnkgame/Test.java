@@ -75,6 +75,7 @@ public class Test {
         p2Moves.add(new Position(4,5));
 
         scenario(gw.board, p1Moves, p2Moves);
+        gw.board.undoLastUpdate(21);
     }
 
     public static void halfOpenThreatsTest(){
@@ -109,6 +110,7 @@ public class Test {
         p2Moves.add(new Position(6,3));
 
         scenario(gw.board, p1Moves, p2Moves);
+        gw.board.undoLastUpdate(24);
     }
 
 
