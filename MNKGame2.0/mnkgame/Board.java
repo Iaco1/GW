@@ -75,6 +75,7 @@ public class Board extends MNKBoard {
              */
             updateThreatsContaining(pivot);
 
+            //unmarkCell(); // to be commented
             /**
              * search for
              * k-1 open
@@ -102,10 +103,10 @@ public class Board extends MNKBoard {
      * @param size the desired size for the threat
      * @return
      */
-    private boolean isStandaloneValidOpenThreat(Threat t, int size) {
+    private boolean isStandaloneValidOpenThreat(Threat t) {
         return t.left.state == MNKCellState.FREE && t.right.state == MNKCellState.FREE
                 && contains(t.left) && contains(t.right)
-                && t.size == size
+                && (t.size == K-1 || t.size == K-2) 
                 && t.jumps == 0;
     }
 
@@ -202,7 +203,7 @@ public class Board extends MNKBoard {
 
         // if the threat is of the desired size and is open add it to the correct
         // container object
-        if (isStandaloneValidOpenThreat(t, size))
+        if (isStandaloneValidOpenThreat(t))
             addThreat(t);
     }
 
@@ -246,7 +247,8 @@ public class Board extends MNKBoard {
 
     private Threat findHalfOpenThreatExtremity(Threat t, MNKCell pivot, int size, boolean left) {
         if (left) {
-            t.left = pivot;
+            if(pivot.state == MNKCellState.FREE) t.left = getAdjacentCell(pivot, t.oDirection(), 1);
+            else t.left = pivot;
             // look for an extremity on the left
             while ((t.left.state == t.player || (isJumpOnAxis(t.left, t, true) && t.jumps < 1)) && t.size < size) {
                 if (t.left.state == t.player) {
@@ -259,7 +261,8 @@ public class Board extends MNKBoard {
                 t.left = getAdjacentCell(t.left, t.oDirection(), 1);
             }
         } else {
-            t.right = getAdjacentCell(pivot, t.sDirection(), 1);
+            if(pivot.state == MNKCellState.FREE) t.right = pivot;
+            else t.right = getAdjacentCell(pivot, t.sDirection(), 1);
             // look for an extremity on the right
             while ((t.right.state == t.player || (isJumpOnAxis(t.right, t, true) && t.jumps < 1)) && t.size < size) {
                 if (t.right.state == t.player) {
@@ -366,8 +369,8 @@ public class Board extends MNKBoard {
      *         MNKCellState and not free and the cell is free
      */
     private boolean isJumpOnAxis(MNKCell cell, Threat t, boolean sameCell) {
-        MNKCell left = getAdjacentCell(cell, t.sDirection(), 1);
-        MNKCell right = getAdjacentCell(cell, t.oDirection(), 1);
+        MNKCell left = getAdjacentCell(cell, t.oDirection(), 1);
+        MNKCell right = getAdjacentCell(cell, t.sDirection(), 1);
 
         if (sameCell) {
             return left.state == right.state && left.state != MNKCellState.FREE
@@ -469,10 +472,12 @@ public class Board extends MNKBoard {
     private boolean differByOne(Threat t1, Threat t2) {
         // if t1's left extremity is adjacent to t2's left extremity
         // or t1's right extremity is adjacent to t2' right extremity
-        if (t1.left.equals(getAdjacentCell(t2.left, t1.sDirection(), 1))
+        if ((t1.left.equals(getAdjacentCell(t2.left, t1.sDirection(), 1))
                 || t1.left.equals(getAdjacentCell(t2.left, t1.oDirection(), 1))
                 || t1.right.equals(getAdjacentCell(t2.right, t1.sDirection(), 1))
-                || t1.right.equals(getAdjacentCell(t2.right, t1.oDirection(), 1))) {
+                || t1.right.equals(getAdjacentCell(t2.right, t1.oDirection(), 1))
+            )
+                && (t1.axis == t2.axis )) {
             return true;
         }
 
@@ -564,7 +569,7 @@ public class Board extends MNKBoard {
             if (t.contains(cell)) {
                 rmSet.add(t);
                 t = addCellToThreat(t, cell);
-                if (t.size != 0)
+                if (isStandaloneValidHalfOpenThreat(t) || isStandaloneValidOpenThreat(t))
                     addSet.add(t);
             }
         }
@@ -572,8 +577,8 @@ public class Board extends MNKBoard {
         getPlayerThreats(Player.getOpponent(cell.state)).addAll(addSet);
     }
 
-    /* */
-    private Threat substituteExtremity(Threat t, MNKCell c) {
+    private Threat substituteExtremity(Threat t, MNKCell cell) {
+        MNKCell c = new MNKCell(cell.i, cell.j, MNKCellState.FREE);
         MNKCell leftAdj = getAdjacentCell(c, t.oDirection(), 1);
         MNKCell rightAdj = getAdjacentCell(c, t.sDirection(), 1);
 
@@ -642,10 +647,10 @@ public class Board extends MNKBoard {
         else if(isNewOpenThreat(t, cell) ){ //case k-1 open with 1 jump
             return substituteExtremity(t, cell);
         }else if(Position.samePosition(t.left, cell)){
-            t.left = cell;
+            t.left = new MNKCell(cell.i, cell.j, MNKCellState.FREE);
             return t;
         }else if(Position.samePosition(t.right, cell)){
-            t.right = cell;
+            t.right = new MNKCell(cell.i, cell.j, MNKCellState.FREE);
             return t;
         }
             return new Threat();
@@ -671,10 +676,10 @@ public class Board extends MNKBoard {
                 // will be of size k-2
                 MNKCell leftEdge = getAdjacentCell(t.left, t.sDirection(), 1);
                 MNKCell rightEdge = getAdjacentCell(t.right, t.oDirection(), 1);
-                if (leftEdge.equals(cell)) {
+                if (Position.samePosition(leftEdge, cell)) {
                     t.left = new MNKCell(cell.i, cell.j, MNKCellState.FREE);
                     t.size--;
-                } else if (rightEdge.equals(cell)) {
+                } else if (Position.samePosition(rightEdge, cell)) {
                     t.right = new MNKCell(cell.i, cell.j, MNKCellState.FREE);
                     t.size--;
                 } else {
@@ -738,12 +743,26 @@ public class Board extends MNKBoard {
             if (t.contains(cell)) {
                 rmSet.add(t);
                 t = removeCellFromThreat(t, cell);
-                if (t.size != 0)
+                if (isStandaloneValidHalfOpenThreat(t) || isStandaloneValidOpenThreat(t))
                     addSet.add(t);
             }
         }
         getPlayerThreats(cell.state).removeAll(rmSet);
         getPlayerThreats(cell.state).addAll(addSet);
+
+        rmSet = new HashSet<>();
+        addSet = new HashSet<>();
+        for (Iterator<Threat> ti = getPlayerThreats(Player.getOpponent(cell.state)).iterator(); ti.hasNext();) {
+            Threat t = ti.next();
+            if (t.contains(cell)) {
+                rmSet.add(t);
+                t = removeCellFromThreat(t, cell);
+                if (isStandaloneValidHalfOpenThreat(t) || isStandaloneValidOpenThreat(t))
+                    addSet.add(t);
+            }
+        }
+        getPlayerThreats(Player.getOpponent(cell.state)).removeAll(rmSet);
+        getPlayerThreats(Player.getOpponent(cell.state)).addAll(addSet);
     }
 
     /* THREAT PROPERTIES AND MODIFYING (ABOVE) */
@@ -800,7 +819,7 @@ public class Board extends MNKBoard {
             }
             if(differByOne(vt, t)) redundant = true;
             if (containerContainsContained(vt, t))
-                if(!Position.samePosition(vt.left, t.left) && Position.samePosition(vt.right, t.right)) redundant = true; // maybe I can just return here
+                if(!Position.samePosition(vt.left, t.left) && !Position.samePosition(vt.right, t.right)) redundant = true; // maybe I can just return here
         }
 
         if (!redundant)

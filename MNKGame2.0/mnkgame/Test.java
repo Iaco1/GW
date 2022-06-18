@@ -78,6 +78,33 @@ public class Test {
         gw.board.undoLastUpdate(21);
     }
 
+    public static void extremitiesUpdaterTest(){
+        GW gw = new GW();
+        gw.initPlayer(7, 7, 4, true, 10);
+        LinkedList<Position> p1Moves = new LinkedList<>();
+        p1Moves.add(new Position(1,1));
+        p1Moves.add(new Position(1,2));
+        p1Moves.add(new Position(1,3));
+        p1Moves.add(new Position(3,1));
+        p1Moves.add(new Position(3,2));
+        p1Moves.add(new Position(3,4));
+        p1Moves.add(new Position(0,6));
+        p1Moves.add(new Position(2,6));
+
+        LinkedList<Position> p2Moves = new LinkedList<>();
+        p2Moves.add(new Position(6,0));
+        p2Moves.add(new Position(6,2));
+        p2Moves.add(new Position(6,4));
+        p2Moves.add(new Position(6,6));
+        p2Moves.add(new Position(1,0));
+        p2Moves.add(new Position(1,4));
+        p2Moves.add(new Position(3,0));
+        p2Moves.add(new Position(3,5));
+
+        scenario(gw.board, p1Moves, p2Moves);
+        gw.board.undoLastUpdate(p1Moves.size()+p2Moves.size());
+    }
+
     public static void halfOpenThreatsTest(){
         GW gw = new GW();
         gw.initPlayer(7, 7, 4, true, 10);
@@ -135,6 +162,6 @@ public class Test {
     }
 
     public static void main(String[] args) {
-       halfOpenThreatsTest();
+       openThreatsTest();
     }
 }
