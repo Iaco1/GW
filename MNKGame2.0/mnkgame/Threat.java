@@ -1,4 +1,7 @@
 package mnkgame;
+
+import java.util.LinkedList;
+
 /**
  * Describes a sequence of cells on a certain axis that can lead to victory in k-i moves
  * with k being the number of cells to align to win the game
@@ -8,22 +11,11 @@ package mnkgame;
  * The axis tells you the order in which to scan the threat
  */
 public class Threat{
-    public MNKCell left;
-    public MNKCell right;
     public Axis axis;
-    public MNKCellState player;
-    public int size;
-    public ThreatType tt;
-    public int jumps;
+    public LinkedList<MNKCell> cells;
 
     public Threat(){
-        left = new MNKCell(0,0);
-        right = left;
         axis = Axis.HORIZONTAL;
-        player = MNKCellState.P1;
-        size = 0;
-        tt = ThreatType.OPEN;
-        jumps = 0;
     }
 
     /**
@@ -36,38 +28,9 @@ public class Threat{
      * @param b the other extremity of the Threat
      * @param axis The axis on which the threat was found
      */
-    public Threat(MNKCell a, MNKCell b, Axis axis, MNKCellState player, int size, ThreatType tt, int jumps) {
+    public Threat(Axis axis, LinkedList<MNKCell> cells) {
+        this.cells = cells;
         this.axis = axis;
-        this.size = size;
-        this.tt = tt;
-        this.jumps = jumps;
-        switch(axis){
-            case HORIZONTAL:{
-                if(a.j <= b.j) { left = a; right = b; }
-                else { left = b; right = a; }
-                break;
-            }
-            case VERTICAL:{
-                if(a.i <= b.i) { left = a; right = b; }
-                else { left = b; right = a; }
-                break;
-            }
-            case DIAGONAL: {
-                if(a.i <= b.i && a.j <= b.j){ left = a; right = b; }
-                else { left = b; right = a; }
-                break;
-            }
-            case ANTIDIAGONAL: {
-                if(a.i <= b.i && a.j >= b.j){ left = a; right = b; }
-                else { left = b; right = a; }
-                break;
-            }
-            default:{
-                left = a;
-                right = b;
-            }
-        }
-        this.player = player;
     }
 
     /**
@@ -81,8 +44,8 @@ public class Threat{
      * @return The Direction that guides the scanning of the board for winning
      *         alignments
      */
-    public Direction sDirection() {
-        switch (this.axis) {
+    public static Direction sDirection(Axis axis) {
+        switch (axis) {
             case HORIZONTAL: { return Direction.E; }
             case VERTICAL: { return Direction.S; }
             case DIAGONAL: { return Direction.SE; }
@@ -95,8 +58,8 @@ public class Threat{
      * 
      * @return The opposite direction of sDirection
      */
-    public Direction oDirection() {
-        switch (sDirection()) {
+    public static Direction oDirection(Axis axis) {
+        switch (sDirection(axis)) {
             case N: { return Direction.S; }
             case NE: { return Direction.SW; }
             case E: { return Direction.W; }
@@ -105,11 +68,12 @@ public class Threat{
             case SW: { return Direction.NE; }
             case W: { return Direction.E; }
             case NW: { return Direction.SE; }
-            default: { return sDirection(); }
+            default: { return sDirection(axis); }
         }
     }
 
     public boolean contains(MNKCell cell){
+        MNKCell left = cells.getFirst(), right = cells.getLast();
         int x1 = left.j, x2 = right.j, y1 = left.i, y2 = right.i, x = cell.j, y = cell.i;
         int lbi = Math.min(left.i, right.i), hbi = Math.max(left.i, right.i);
         int lbj = Math.min(left.j, right.j), hbj = Math.max(left.j, right.j);
@@ -117,9 +81,25 @@ public class Threat{
         && (y >= lbi && y <= hbi) && (x >= lbj && x <= hbj);
     }
 
+    public LinkedList<MNKCell> getCells(){ return new LinkedList<>(cells); }
+
+    public MNKCellState state(){ return cells.get(1).state; }
+
+    public int threatSize(){
+        int p1 = 0, p2 = 0;
+        LinkedList<MNKCell> cells = getCells();
+        cells.removeFirst(); cells.removeLast();
+        for(MNKCell c : cells){
+            if(c.state == MNKCellState.P1) p1++;
+            else if(c.state == MNKCellState.P2) p2++;
+        }
+        return Integer.max(p1, p2);
+    }
+
     public String toString(){
-        return "[ " + this.left.toString() + ", " + this.right.toString() + " ]"
-        + "\n[" + this.player + ", " + this.axis + ", " + this.jumps + " ]"
-        + "\n[ " + this.tt + ", " + this.size + " ]";
+        StringBuilder sb = new StringBuilder("[" + axis + ",\n");
+        for(MNKCell c : cells) sb.append(c.toString() + ", ");
+        sb.append(" ]");
+        return sb.toString();
     }
 }

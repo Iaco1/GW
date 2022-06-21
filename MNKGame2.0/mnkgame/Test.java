@@ -24,16 +24,27 @@ public class Test {
             if(p1i.hasNext()){
                 Position move = (Position) p1i.next();
                 b.markCell(move.i, move.j);
-                b.updateThreats(1);
+                b.updateThreats(b.getCellAt(move.i, move.j));
+                b.updateBoardVisualisation();
             }
             if(p2i.hasNext()){
                 Position move = (Position) p2i.next();
                 b.markCell(move.i, move.j);
-                b.updateThreats(1);
+                b.updateThreats(b.getCellAt(move.i, move.j));
+                b.updateBoardVisualisation();
             }
         }
     }
 
+    public static void playback(Board b){
+        for(int i = b.MC.size()-1; i >= 0; i--){
+            MNKCell pivot = b.MC.get(i);
+            pivot = new MNKCell(pivot.i, pivot.j, MNKCellState.FREE);
+            b.unmarkCell();
+            b.updateThreats(pivot);
+
+        }
+    }
     public static void scenario(Board b, LinkedList<MNKCell> MC){
         for(MNKCell c : MC){
             b.markCell(c.i, c.j);
@@ -42,11 +53,6 @@ public class Test {
 
     public static void openThreatsTest(){
         GW gw = new GW();
-        gw.initPlayer(3, 3, 3, true, 10);
-        gw.board.markCell(0, 1);
-        gw.board.markCell(1, 1);
-        gw.board.markCell(2, 1);
-        gw.board.updateThreats(3);
 
         gw.initPlayer(7, 7, 4, true, 10);
         LinkedList<Position> p1Moves = new LinkedList<>();
@@ -75,7 +81,7 @@ public class Test {
         p2Moves.add(new Position(4,5));
 
         scenario(gw.board, p1Moves, p2Moves);
-        gw.board.undoLastUpdate(21);
+        playback(gw.board);
     }
 
     public static void extremitiesUpdaterTest(){
@@ -102,7 +108,7 @@ public class Test {
         p2Moves.add(new Position(3,5));
 
         scenario(gw.board, p1Moves, p2Moves);
-        gw.board.undoLastUpdate(p1Moves.size()+p2Moves.size());
+        playback(gw.board);
     }
 
     public static void halfOpenThreatsTest(){
@@ -137,7 +143,7 @@ public class Test {
         p2Moves.add(new Position(6,3));
 
         scenario(gw.board, p1Moves, p2Moves);
-        gw.board.undoLastUpdate(24);
+        playback(gw.board);
     }
 
 
@@ -161,7 +167,16 @@ public class Test {
 
     }
 
+    public static void getAllPossibleThreatsTest(){
+        GW gw = new GW();
+        gw.initPlayer(3, 3, 3, true, 10);
+        gw.board.markCell(1, 1);
+        LinkedList<Threat> apt = gw.board.getAllPossibleThreats(gw.board.getCellAt(1, 1));
+        apt.removeLast();
+        apt.removeFirst();
+    }
+
     public static void main(String[] args) {
-       openThreatsTest();
+       halfOpenThreatsTest();
     }
 }

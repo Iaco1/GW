@@ -39,12 +39,12 @@ public class GW implements MNKPlayer {
         for(MNKCell freeCell : b.getFreeCells()) {
             if (depth < itDepthMax) {
                 b.markCell(freeCell.i, freeCell.j);
-                b.updateThreats(1);
+                b.updateThreats(b.getCellAt(freeCell.i, freeCell.j));
                 if (b.gameState.equals(MNKGameState.OPEN)) {
                     optimalCell = depthLimitedSearch(b, depth+1, itDepthMax);
                 }
                 b.unmarkCell();
-                b.undoLastUpdate(1);
+                b.updateThreats(b.getCellAt(freeCell.i, freeCell.j));
             } else {
                 return alphaBetaDriver(depth, itDepthMax);
             }
@@ -89,10 +89,10 @@ public class GW implements MNKPlayer {
             eval = Integer.MIN_VALUE;
             for (MNKCell freeCell : b.getFreeCells()) {
                 b.markCell(freeCell.i, freeCell.j);
-                b.updateThreats(1);
+                b.updateThreats(b.getCellAt(freeCell.i, freeCell.j));
                 eval = Integer.max(eval, alphaBeta(b, false, alpha, beta, goalDepth, currentDepth + 1));
                 b.unmarkCell();
-                b.undoLastUpdate(1);
+                b.updateThreats(b.getCellAt(freeCell.i, freeCell.j));
                 alpha = Integer.max(eval, alpha);
                 if (alpha >= beta)
                     break;
@@ -101,10 +101,10 @@ public class GW implements MNKPlayer {
             eval = Integer.MAX_VALUE;
             for (MNKCell freeCell : b.getFreeCells()) {
                 b.markCell(freeCell.i, freeCell.j);
-                b.updateThreats(1);
+                b.updateThreats(b.getCellAt(freeCell.i, freeCell.j));
                 eval = Integer.min(eval, alphaBeta(b, true, alpha, beta, goalDepth, currentDepth + 1));
                 b.unmarkCell();
-                b.undoLastUpdate(1);
+                b.updateThreats(b.getCellAt(freeCell.i, freeCell.j));
                 beta = Integer.min(eval, beta);
                 if (alpha >= beta)
                     break;
@@ -148,7 +148,7 @@ public class GW implements MNKPlayer {
             if(board.gameState != MNKGameState.OPEN || currentDepth >= goalDepth) break;
             
             board.markCell(freeCell.i, freeCell.j);
-            board.updateThreats(1);
+            board.updateThreats(board.getCellAt(freeCell.i, freeCell.j));
             Integer currentCellValue = alphaBeta(board, player.num() == board.currentPlayer(), alpha,
                     beta, goalDepth,
                     currentDepth);
@@ -157,13 +157,13 @@ public class GW implements MNKPlayer {
                 optimalValue = currentCellValue;
                 optimalCell = freeCell;
             }
-            board.undoLastUpdate(1);
             board.unmarkCell();
+            board.updateThreats(board.getCellAt(freeCell.i, freeCell.j));
         }
         return optimalCell;
     }
 
-    //evaluate will now always expect you to have evaluated the threats in all previous turns except the last one
+    //evaluate will always expect you to have evaluated the threats in all previous turns
     public int evaluate(Board b, MNKCellState state) {
         final int victoryParam = 1000000;
 
@@ -181,22 +181,13 @@ public class GW implements MNKPlayer {
         if (stateVictories != opponentVictories)
             return Integer.max(stateVictories, opponentVictories) * victoryParam;
 
-        MNKCellState opponent = Player.getOpponent(state);
-        b.updateThreats(1);
+        int[] th = b.getNumberOfThreats();
 
-        //adjusting the evalutation formula
-        int[] playerThreatSize = b.getThreatSize(b.getPlayerThreats(state));
-        int[] opponentThreatSize = b.getThreatSize(b.getPlayerThreats(opponent));
+        int p1 = th[0] * km1otStateParam + th[1] * km1hotStateParam + th[2] * km2otStateParam;
+        int p2 = th[3] * km1otOpponentParam + th[4] * km1hotOpponentParam + th[5] * km2otOpponentParam;
         
-        return 
-        (playerThreatSize[0] * km1otStateParam
-        + playerThreatSize[1] * km1hotStateParam
-        + playerThreatSize[2] * km2otStateParam)
-        
-        - 
-        (opponentThreatSize[0] * km1otOpponentParam
-        + opponentThreatSize[1] * km1hotOpponentParam
-        + opponentThreatSize[2] * km2otOpponentParam);
+        if(state == MNKCellState.P1) return p1 - p2;
+        else return p2 - p1; 
 
     }
 
@@ -214,7 +205,8 @@ public class GW implements MNKPlayer {
             MNKCell opponentCell = MC[MC.length-1];
             board.markCell(playerCell.i, playerCell.j);
             board.markCell(opponentCell.i, opponentCell.j);
-            board.updateThreats(2);
+            board.updateThreats(MC[MC.length-2]);
+            board.updateThreats(MC[MC.length-1]);
         }
         
         MNKCell optimalCell = iterativeDeepening(board.K);
