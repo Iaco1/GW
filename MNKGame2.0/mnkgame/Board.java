@@ -286,11 +286,12 @@ public class Board extends MNKBoard {
                 else if(t.threatSize() == K-2) index = 2;
             }else if(isHalfOpenThreat(t)) index = 1;
 
-            if(t.state() == MNKCellState.P1);
-            else if(t.state() == MNKCellState.P2) index+=3;
-
-            if(index >= 0 && index < 6 ) th[index]++;
-
+            if(index >= 0 && index <= 2){
+                if(t.state() == MNKCellState.P1);
+                else if(t.state() == MNKCellState.P2) index+=3;
+                
+                th[index]++;
+            }
         }
         return th;
     }

@@ -145,13 +145,9 @@ public class GW implements MNKPlayer {
         // running alpha beta on all free cells and memorizing the optimal cell to be
         // marked
         for (MNKCell freeCell : board.getFreeCells()) {
-            if(board.gameState != MNKGameState.OPEN || currentDepth >= goalDepth) break;
-            
             board.markCell(freeCell.i, freeCell.j);
             board.updateThreats(board.getCellAt(freeCell.i, freeCell.j));
-            Integer currentCellValue = alphaBeta(board, player.num() == board.currentPlayer(), alpha,
-                    beta, goalDepth,
-                    currentDepth);
+            Integer currentCellValue = alphaBeta(board, player.num() == board.currentPlayer(), alpha, beta, goalDepth, currentDepth);
 
             if (currentCellValue > optimalValue) {
                 optimalValue = currentCellValue;
@@ -178,8 +174,10 @@ public class GW implements MNKPlayer {
         int stateVictories = b.getVictories(state);
         int opponentVictories = b.getVictories(Player.getOpponent(state));
 
-        if (stateVictories != opponentVictories)
-            return Integer.max(stateVictories, opponentVictories) * victoryParam;
+        if (stateVictories != opponentVictories){
+            if(Integer.max(stateVictories, opponentVictories) == stateVictories) return victoryParam;
+            else return -victoryParam;
+        }
 
         int[] th = b.getNumberOfThreats();
 
@@ -200,16 +198,21 @@ public class GW implements MNKPlayer {
      */
     public MNKCell selectCell(MNKCell[] FC, MNKCell[] MC) {
         // mark last played cell by the adversary
-        if (MC.length > 0){
+        if(MC.length == 1){
+            MNKCell opponentCell = MC[MC.length-1];
+            board.markCell(opponentCell.i, opponentCell.j);
+            board.updateThreats(opponentCell);
+        }
+        else if (MC.length > 0){
             MNKCell playerCell = MC[MC.length-2];
             MNKCell opponentCell = MC[MC.length-1];
             board.markCell(playerCell.i, playerCell.j);
             board.markCell(opponentCell.i, opponentCell.j);
-            board.updateThreats(MC[MC.length-2]);
-            board.updateThreats(MC[MC.length-1]);
+            board.updateThreats(playerCell);
+            board.updateThreats(opponentCell);
         }
         
-        MNKCell optimalCell = iterativeDeepening(board.K);
+        MNKCell optimalCell = alphaBetaDriver(0, board.K);
         return optimalCell;
     }
 
