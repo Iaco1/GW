@@ -20,9 +20,9 @@ public class GW implements MNKPlayer {
         int itDepth = 0;
         MNKCell optimalCell = this.board.getFreeCells()[0];
 
-        while(((System.currentTimeMillis() - initialTime) / 1000.0 < timeout-1) && (itDepth <= itDepthMax)) { // until time limit is reached
+        while(( ((System.currentTimeMillis() - initialTime) / 1000.0) < timeout-1) && (itDepth <= itDepthMax)) { // until time limit is reached
             //optimalCell = depthLimitedSearch(this.board, itDepth, itDepthMax);
-            optimalCell = alphaBetaDriver(itDepth, itDepthMax);
+            optimalCell = alphaBetaDriver(itDepth, itDepthMax, initialTime);
             itDepth += 1;
             //System.out.println(itDepth);
             //System.out.println((System.currentTimeMillis() - initialTime)/1000.0);
@@ -46,7 +46,7 @@ public class GW implements MNKPlayer {
                 b.unmarkCell();
                 b.updateThreats(b.getCellAt(freeCell.i, freeCell.j));
             } else {
-                return alphaBetaDriver(depth, itDepthMax);
+                return alphaBetaDriver(depth, itDepthMax, 0); // 0 placeholder value
             }
         }
 
@@ -81,16 +81,16 @@ public class GW implements MNKPlayer {
      * @return The value of the current move
      * @author Davide Iacomino
      */
-    public Integer alphaBeta(Board b, boolean max, Integer alpha, Integer beta, int goalDepth, int currentDepth) {
+    public Integer alphaBeta(Board b, boolean max, Integer alpha, Integer beta, int goalDepth, int currentDepth, double initialTime) {
         Integer eval;
-        if (b.gameState != MNKGameState.OPEN || currentDepth >= goalDepth)
+        if (b.gameState != MNKGameState.OPEN || currentDepth >= goalDepth || !(((System.currentTimeMillis() - initialTime) / 1000.0) < timeout-1))
             return evaluate(board, player.state());
         else if (max) {
             eval = Integer.MIN_VALUE;
             for (MNKCell freeCell : b.getFreeCells()) {
                 b.markCell(freeCell.i, freeCell.j);
                 b.updateThreats(b.getCellAt(freeCell.i, freeCell.j));
-                eval = Integer.max(eval, alphaBeta(b, false, alpha, beta, goalDepth, currentDepth + 1));
+                eval = Integer.max(eval, alphaBeta(b, false, alpha, beta, goalDepth, currentDepth + 1, initialTime));
                 b.unmarkCell();
                 b.updateThreats(b.getCellAt(freeCell.i, freeCell.j));
                 alpha = Integer.max(eval, alpha);
@@ -102,7 +102,7 @@ public class GW implements MNKPlayer {
             for (MNKCell freeCell : b.getFreeCells()) {
                 b.markCell(freeCell.i, freeCell.j);
                 b.updateThreats(b.getCellAt(freeCell.i, freeCell.j));
-                eval = Integer.min(eval, alphaBeta(b, true, alpha, beta, goalDepth, currentDepth + 1));
+                eval = Integer.min(eval, alphaBeta(b, true, alpha, beta, goalDepth, currentDepth + 1, initialTime));
                 b.unmarkCell();
                 b.updateThreats(b.getCellAt(freeCell.i, freeCell.j));
                 beta = Integer.min(eval, beta);
@@ -134,7 +134,7 @@ public class GW implements MNKPlayer {
     /**
      * Driver method to select the best cell \in FC
      */
-    public MNKCell alphaBetaDriver(int currentDepth, int goalDepth) {
+    public MNKCell alphaBetaDriver(int currentDepth, int goalDepth, double initialTime) {
         // optimal cell intitalization
         Integer optimalValue = Integer.MIN_VALUE;
         MNKCell optimalCell = board.getFreeCells()[0];
@@ -145,9 +145,10 @@ public class GW implements MNKPlayer {
         // running alpha beta on all free cells and memorizing the optimal cell to be
         // marked
         for (MNKCell freeCell : board.getFreeCells()) {
+            if(!(((System.currentTimeMillis() - initialTime) / 1000.0) < timeout-1)) return optimalCell;
             board.markCell(freeCell.i, freeCell.j);
             board.updateThreats(board.getCellAt(freeCell.i, freeCell.j));
-            Integer currentCellValue = alphaBeta(board, player.num() == board.currentPlayer(), alpha, beta, goalDepth, currentDepth);
+            Integer currentCellValue = alphaBeta(board, player.num() == board.currentPlayer(), alpha, beta, goalDepth, currentDepth, initialTime);
 
             if (currentCellValue > optimalValue) {
                 optimalValue = currentCellValue;
@@ -212,7 +213,7 @@ public class GW implements MNKPlayer {
             board.updateThreats(opponentCell);
         }
         
-        MNKCell optimalCell = alphaBetaDriver(0, board.K);
+        MNKCell optimalCell = iterativeDeepening(board.K);
         return optimalCell;
     }
 
