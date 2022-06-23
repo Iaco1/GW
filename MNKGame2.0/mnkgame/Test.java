@@ -4,11 +4,10 @@ import java.util.LinkedList;
 
 /**
  * Testing class for GW methods
- * @author Leonie Brockmann 
  */
 public class Test {
 
-        /**
+    /**
      * Plays the game with the list of moves given for each player
      * will not work if the moves lists' length have a difference > 1  
      * assumes the positions are in the bounds of the board 
@@ -45,6 +44,7 @@ public class Test {
 
         }
     }
+    
     public static void scenario(Board b, LinkedList<MNKCell> MC){
         for(MNKCell c : MC){
             b.markCell(c.i, c.j);
@@ -146,7 +146,6 @@ public class Test {
         playback(gw.board);
     }
 
-
     public static void simpleThreeOpenThreats(){
         GW gw = new GW();
         gw.initPlayer(7, 7, 4, true, 10);
@@ -167,11 +166,12 @@ public class Test {
 
     }
 
+    @Deprecated
     public static void getAllPossibleThreatsTest(){
         GW gw = new GW();
         gw.initPlayer(3, 3, 3, true, 10);
         gw.board.markCell(1, 1);
-        LinkedList<Threat> apt = gw.board.getAllPossibleThreats(gw.board.getCellAt(1, 1));
+        LinkedList<Threat> apt = new LinkedList<>();//gw.board.getAllPossibleThreats(gw.board.getCellAt(1, 1));
         apt.removeLast();
         apt.removeFirst();
     }

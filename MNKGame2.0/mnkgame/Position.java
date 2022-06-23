@@ -8,10 +8,12 @@ public class Position {
     public Integer j;
 
     public Position(){}
+    
     public Position(Integer i, Integer j){
         this.i = i;
         this.j = j;
     }
+    
     public static boolean samePosition(MNKCell c1, MNKCell c2){ return c1.i == c2.i && c1.j == c2.j; }
 
     public String toString(){ return "(" + i + "," + j + ")"; }

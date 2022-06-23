@@ -1,17 +1,20 @@
 package mnkgame;
 
 /**
- * Describes the player's number, gives information about the opponent, some casting methods
- * and whether the MNKGameState means a win or a loss for the player
+ * Describes the player's number, gives information about the opponent, some
+ * casting methods
  */
 public class Player {
     private int num;
 
-    Player(){}
-    Player(int n){
+    Player() {
+    }
+
+    Player(int n) {
         num = MNKCellStateToInt(intToMNKCellState(n));
     }
-    Player(MNKCellState state){
+
+    Player(MNKCellState state) {
         num = MNKCellStateToInt(state);
     }
 
@@ -20,9 +23,8 @@ public class Player {
      * 
      * @param state
      * @return 0 for P1, 1 for P2, 2 as default
-     * @author Davide Iacomino
      */
-    public static int MNKCellStateToInt(MNKCellState state) {
+    private static int MNKCellStateToInt(MNKCellState state) {
         switch (state) {
             case P1: {
                 return 0;
@@ -41,9 +43,8 @@ public class Player {
      * 
      * @param player
      * @return P1 for 0, P2 for 1, FREE by default
-     * @author Davide Iacomino
      */
-    public static MNKCellState intToMNKCellState(int player) {
+    private static MNKCellState intToMNKCellState(int player) {
         switch (player) {
             case 0:
                 return MNKCellState.P1;
@@ -54,9 +55,14 @@ public class Player {
         }
     }
 
-    public int num(){ return num; }
-    public MNKCellState state(){ return intToMNKCellState(num); } 
-    
+    public int num() {
+        return num;
+    }
+
+    public MNKCellState state() {
+        return intToMNKCellState(num);
+    }
+
     public static MNKCellState getOpponent(MNKCellState state) {
         switch (state) {
             case P1: {
@@ -70,11 +76,5 @@ public class Player {
             } // Should I return an Exception here?
         }
     }
-    public static boolean won(MNKCellState cellState, MNKGameState gameState){
-        switch(gameState){
-            case WINP1: { return (cellState == MNKCellState.P1) ? true : false; }
-            case WINP2: { return (cellState == MNKCellState.P2) ? true : false; }
-            default: { return false; }
-        }
-    }
+
 }

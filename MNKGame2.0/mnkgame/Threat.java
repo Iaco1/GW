@@ -3,12 +3,31 @@ package mnkgame;
 import java.util.LinkedList;
 
 /**
- * Describes a sequence of cells on a certain axis that can lead to victory in k-i moves
- * with k being the number of cells to align to win the game
- * and i being how many cells the current threat lacks to get to size k
+ * <p>
+ * Describes a sequence of cells on a certain axis that can lead to victory in k-i moves, 
+ * with k being the number of cells to align to win the game and i being how many cells the current threat lacks to get to size k.<br><br>
+ * The axis tells you the order in which to scan the threat.
+ * </p><br><br>
+ * 
+ * Threat Types: <br><br>
+ * Let k (> 1) be the number of symbols to align to win the game and i a number \in [1, k-1]
+ * <ul>
+ *  <li>An Open threat is:
+ *      <ul>
+ *          <li>k-i consecutively aligned symbols with two free extremities
+ *      </ul>
+ *  <li> An Half Open threat is either:
+ *      <ul>
+ *          <li>k-i consecutively aligned symbols with one free extremity
+ *          <li>k-i aligned symbols with a jump (or hole) and 0,1 or 2 free extremitis
+ *      </ul>
+ *  <li> A closed threat is: 
+ *      <ul>
+ *          <li>k-i consecutively aligned symbols with no free extremities
+ *      </ul>
+ * </ul>
+ * <br><br>
  * In this implementation, only k-1 and k-2 threats are considered
- * Left and right are the extremities of the threat and are always free, out of bounds or occupied by the enemy
- * The axis tells you the order in which to scan the threat
  */
 public class Threat{
     public Axis axis;
@@ -19,14 +38,7 @@ public class Threat{
     }
 
     /**
-     * no check on whether positions are in the board
-     * no check on whether positions are actually on the same axis
-     * no check on threat type
-     * no check on size
-     * no check on jumps
-     * @param a One extremity of the Threat
-     * @param b the other extremity of the Threat
-     * @param axis The axis on which the threat was found
+     * no checks whatsoever
      */
     public Threat(Axis axis, LinkedList<MNKCell> cells) {
         this.cells = cells;
@@ -36,9 +48,9 @@ public class Threat{
     /**
      * The board is scanned:
      * left to right (W to E) for alignments on the HORIZONTAL axis
-     * top to bottom (N to S) for alignments on the VERTICAL
-     * top left to bottom right (NW to SE)
-     * top right to bottom left (NE to SW)
+     * top to bottom (N to S) for alignments on the VERTICAL axis
+     * top left to bottom right (NW to SE) for alignments on the DIAGONAL axis
+     * top right to bottom left (NE to SW) for alignments on the ANTIDIAGONAL axis
      * 
      * @param axis The axis on which to scan the board for winning alignments
      * @return The Direction that guides the scanning of the board for winning
@@ -59,15 +71,11 @@ public class Threat{
      * @return The opposite direction of sDirection
      */
     public static Direction oDirection(Axis axis) {
-        switch (sDirection(axis)) {
-            case N: { return Direction.S; }
-            case NE: { return Direction.SW; }
-            case E: { return Direction.W; }
-            case SE: { return Direction.NW; }
-            case S: { return Direction.N; }
-            case SW: { return Direction.NE; }
-            case W: { return Direction.E; }
-            case NW: { return Direction.SE; }
+        switch (axis) {
+            case HORIZONTAL:{ return Direction.W; }
+            case VERTICAL:{ return Direction.N; }
+            case DIAGONAL: { return Direction.NW; }
+            case ANTIDIAGONAL:{ return Direction.NE; }
             default: { return sDirection(axis); }
         }
     }
@@ -85,7 +93,7 @@ public class Threat{
 
     public MNKCellState state(){ return cells.get(1).state; }
 
-    public int threatSize(){
+    public int size(){
         int p1 = 0, p2 = 0;
         LinkedList<MNKCell> cells = getCells();
         cells.removeFirst(); cells.removeLast();
