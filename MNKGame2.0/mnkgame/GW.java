@@ -12,6 +12,7 @@ import java.util.LinkedList;
 public class GW implements MNKPlayer {
     protected Board board;
     protected int timeout;
+    protected int insurance;
     Player player;
 
     /**
@@ -24,6 +25,8 @@ public class GW implements MNKPlayer {
     public void initPlayer(int M, int N, int K, boolean first, int timeout_in_secs) {
         board = new Board(M, N, K);
         timeout = timeout_in_secs;
+        if(M*N >= 2500) insurance = 2;
+        else insurance = 1; 
 
         if (first)
             player = new Player(0);
@@ -125,7 +128,7 @@ public class GW implements MNKPlayer {
      */
     public Integer alphaBeta(Board b, boolean max, Integer alpha, Integer beta, int depth, double initialTime) {
         Integer eval;
-        if (b.gameState != MNKGameState.OPEN || depth == 0 || !(((System.currentTimeMillis() - initialTime) / 1000.0) < timeout-1))
+        if (b.gameState != MNKGameState.OPEN || depth == 0 || !(((System.currentTimeMillis() - initialTime) / 1000.0) < timeout-insurance))
             return evaluate(board, player.state());
         else if (max) {
             eval = Integer.MIN_VALUE;
@@ -161,28 +164,31 @@ public class GW implements MNKPlayer {
      * uses alphaBeta to determine the first best guess and MTD(f) for later guesses based on the first one
      * @param goalDepth The tree search depth
      * @param initialTime the time when iterativeDeepening() was called
-     * @param freeCells The list of cells that have a subtree we want to search
+     * @param interestingCells The list of cells that have a subtree we want to search
      * @return The deemed best move in the current state of the game
      */
-    public MNKCell searchDriver(int goalDepth, double initialTime, LinkedList<MNKCell> freeCells) {
+    public MNKCell searchDriver(int goalDepth, double initialTime, LinkedList<MNKCell> interestingCells) {
         // optimal cell intitalization
         Integer optimalValue = Integer.MIN_VALUE;
         MNKCell optimalCell = board.getFreeCells()[0];
 
         // alpha-beta value intialization
         Integer alpha = Integer.MIN_VALUE, beta = Integer.MAX_VALUE;
+        boolean firstSearch = true;
 
 
         // running alpha beta on all free cells and memorizing the optimal cell to be
         // marked
-        for (MNKCell fc : freeCells) {
-            if(!(((System.currentTimeMillis() - initialTime) / 1000.0) < timeout-1)) return optimalCell;
+        for (MNKCell fc : interestingCells) {
+            if(!(((System.currentTimeMillis() - initialTime) / 1000.0) < timeout-insurance)) return optimalCell;
             board.markCell(fc.i, fc.j);
             board.updateThreats(board.getCellAt(fc.i, fc.j));
             Integer currentCellValue;
 
-            if(board.getMarkedCells().length == 1) currentCellValue = alphaBeta(board, player.num() == board.currentPlayer(), alpha, beta, goalDepth, initialTime);
-            else currentCellValue = MTD(board, goalDepth, optimalValue, initialTime);
+            if(firstSearch){
+                currentCellValue = alphaBeta(board, player.num() == board.currentPlayer(), alpha, beta, goalDepth, initialTime);
+                firstSearch = false;
+            }else currentCellValue = MTD(board, goalDepth, optimalValue, initialTime);
 
             if (currentCellValue > optimalValue) {
                 optimalValue = currentCellValue;
@@ -193,7 +199,6 @@ public class GW implements MNKPlayer {
         }
         return optimalCell;
     }
-
 
     /**
      * Handles the timeout restriction by performing deeper searches of the game tree at each iteration
@@ -207,18 +212,19 @@ public class GW implements MNKPlayer {
 
         int itDepth = 0;
         MNKCell optimalCell = this.board.getFreeCells()[0];
-        LinkedList<MNKCell> freeCells = new LinkedList<>(Arrays.asList(board.getFreeCells()));
+        LinkedList<MNKCell> interestingCells = new LinkedList<>(Arrays.asList(board.getFreeCells()));
+        if(board.MC.size() > 1) interestingCells = new LinkedList<>(board.contour());
 
-        while(( ((System.currentTimeMillis() - initialTime) / 1000.0) < timeout-1) && (itDepth <= itDepthMax)) { // until time limit is reached
+        while(( ((System.currentTimeMillis() - initialTime) / 1000.0) < timeout-insurance) && (itDepth <= itDepthMax)) { // until time limit is reached
             //optimalCell = depthLimitedSearch(this.board, itDepth, itDepthMax);
-            optimalCell = searchDriver(itDepth, initialTime, freeCells);
-            freeCells.remove(optimalCell);
-            freeCells.addFirst(optimalCell);
+            optimalCell = searchDriver(itDepth, initialTime, interestingCells);
+            interestingCells.remove(optimalCell);
+            interestingCells.addFirst(optimalCell);
             itDepth += 1;
-            //System.out.println(itDepth);
+            //System.out.print(itDepth + ", ");
             //System.out.println((System.currentTimeMillis() - initialTime)/1000.0);
         }
-        System.out.println("Depth distance: " + (itDepthMax - itDepth));
+        if(((System.currentTimeMillis() - initialTime) / 1000.0) > timeout-1) insurance+=2;
 
         return optimalCell;
     }
