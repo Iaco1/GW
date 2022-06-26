@@ -24,13 +24,13 @@ public class Test {
                 Position move = (Position) p1i.next();
                 b.markCell(move.i, move.j);
                 b.updateThreats(b.getCellAt(move.i, move.j));
-                b.updateBoardVisualisation();
+                b.contour();
             }
             if(p2i.hasNext()){
                 Position move = (Position) p2i.next();
                 b.markCell(move.i, move.j);
                 b.updateThreats(b.getCellAt(move.i, move.j));
-                b.updateBoardVisualisation();
+                b.contour();
             }
         }
     }
@@ -177,6 +177,29 @@ public class Test {
     }
 
     public static void main(String[] args) {
-       halfOpenThreatsTest();
+        String game;
+        String gw = "mnkgame.GW";
+        String qrp = "mnkgame.QuasiRandomPlayer";
+        String t = "-t";
+        int[] m = {3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 10, 50, 70};
+        int[] n = {3, 3, 4, 4, 4, 5, 5, 4, 5, 6, 6, 6, 4, 5, 6, 7, 5, 6, 7, 7, 7, 8, 10, 50, 70};
+        int[] k = {3, 3, 3, 4, 4, 4, 5, 4, 4, 4, 5, 6, 4, 4, 4, 4, 5, 5, 5, 6, 7, 4, 5, 10, 10};
+
+        for(int i=0; i<m.length; i++){        
+            String[] arg = new String[9];
+            arg[0] = String.valueOf(m[i]);
+            arg[1] = String.valueOf(n[i]);
+            arg[2] = String.valueOf(k[i]);
+            arg[3] = gw;
+            arg[4] = qrp;
+            arg[5] = t;
+            arg[6] = String.valueOf(10);
+            arg[7] = "-r";
+            arg[8] = "10";
+
+            long initTime = System.currentTimeMillis();
+            MNKPlayerTester.main(arg);
+            System.out.println((System.currentTimeMillis() - initTime)/1000.0 + "s elapsed");
+        }
     }
 }

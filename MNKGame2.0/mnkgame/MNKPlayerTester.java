@@ -332,8 +332,12 @@ public class MNKPlayerTester {
 			}
 		}
 		if(VERBOSE) System.out.println("\n**** FINAL SCORE ****");
-		System.out.println(Player[0].playerName() + " Score: " + P1SCORE + " \n\t\tWon: " + STATP1[0] + " Lost: " + STATP2[0] + " Draw: " + STATP1[1] + " \n\t\tError: " + STATP1[2]);
-		System.out.println(Player[1].playerName() + " Score: " + P2SCORE + " \n\t\tWon: " + STATP2[0] + " Lost: " + STATP1[0] + " Draw: " + STATP2[1] + " \n\t\tError: " + STATP2[2]);	
-		System.exit(0);
+		System.out.print("(" + M + ", " + N + ", " + K + ")\t");
+		System.out.print(Player[0].playerName() + ": (" + STATP1[0] + ", " + STATP2[0] + ", " + STATP1[1] + ", " + STATP1[2] + ") == " + P1SCORE + "\t\t");
+		System.out.print(Player[1].playerName() + ": (" + STATP2[0] + ", " + STATP1[0] + ", " + STATP2[1] + ", " + STATP2[2] + ") == " + P2SCORE + "\t");
+
+		//System.out.println(Player[0].playerName() + " Score: " + P1SCORE + " \n\t\tWon: " + STATP1[0] + " Lost: " + STATP2[0] + " Draw: " + STATP1[1] + " \n\t\tError: " + STATP1[2]);
+		//System.out.println(Player[1].playerName() + " Score: " + P2SCORE + " \n\t\tWon: " + STATP2[0] + " Lost: " + STATP1[0] + " Draw: " + STATP2[1] + " \n\t\tError: " + STATP2[2]);	
+		//System.exit(0);
 	}
 }
