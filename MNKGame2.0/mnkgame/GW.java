@@ -25,8 +25,8 @@ public class GW implements MNKPlayer {
     public void initPlayer(int M, int N, int K, boolean first, int timeout_in_secs) {
         board = new Board(M, N, K);
         timeout = timeout_in_secs;
-        if(M*N >= 2500) insurance = 2;
-        else insurance = 1; 
+        if(M*N >= 2500) insurance = timeout/20;
+        else insurance = timeout/10; 
 
         if (first)
             player = new Player(0);
@@ -212,8 +212,9 @@ public class GW implements MNKPlayer {
 
         int itDepth = 0;
         MNKCell optimalCell = this.board.getFreeCells()[0];
-        LinkedList<MNKCell> interestingCells = new LinkedList<>(Arrays.asList(board.getFreeCells()));
+        LinkedList<MNKCell> interestingCells;
         if(board.MC.size() > 1) interestingCells = new LinkedList<>(board.contour());
+        else interestingCells = new LinkedList<>(Arrays.asList(board.getFreeCells()));
 
         while(( ((System.currentTimeMillis() - initialTime) / 1000.0) < timeout-insurance) && (itDepth <= itDepthMax)) { // until time limit is reached
             //optimalCell = depthLimitedSearch(this.board, itDepth, itDepthMax);
